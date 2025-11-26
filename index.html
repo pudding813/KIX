@@ -1,387 +1,350 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="zh-TW">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2487.4">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #6d6d6d; -webkit-text-stroke: #6d6d6d}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #0000ff; -webkit-text-stroke: #0000ff}
-    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #6b0001; -webkit-text-stroke: #6b0001}
-    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #fb0007; -webkit-text-stroke: #fb0007}
-    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; -webkit-text-stroke: #000000}
-    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; -webkit-text-stroke: #000000; min-height: 16.0px}
-    p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #4d5055; -webkit-text-stroke: #4d5055}
-    p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px Menlo; color: #18702b; -webkit-text-stroke: #18702b}
-    span.s1 {font-kerning: none; background-color: #ecf1f7}
-    span.s2 {font-kerning: none; color: #fb0007; background-color: #ecf1f7; -webkit-text-stroke: 0px #fb0007}
-    span.s3 {font-kerning: none; color: #2a2a2a; background-color: #ecf1f7; -webkit-text-stroke: 0px #2a2a2a}
-    span.s4 {font-kerning: none; color: #6b0001; background-color: #ecf1f7; -webkit-text-stroke: 0px #6b0001}
-    span.s5 {font-kerning: none; color: #000000; background-color: #ecf1f7; -webkit-text-stroke: 0px #000000}
-    span.s6 {font-kerning: none; color: #0000ff; background-color: #ecf1f7; -webkit-text-stroke: 0px #0000ff}
-    span.s7 {font-kerning: none}
-    span.s8 {font-kerning: none; color: #093c94; background-color: #ecf1f7; -webkit-text-stroke: 0px #093c94}
-    span.s9 {font-kerning: none; color: #4d5055; background-color: #ecf1f7; -webkit-text-stroke: 0px #4d5055}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>關西姊妹淘七日悠閒之旅</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: #fff1f2; /* Rose-50 */
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.5s ease-out forwards;
+        }
+    </style>
 </head>
 <body>
-<p class="p1"><span class="s1">&lt;!DOCTYPE</span><span class="s2"> html</span><span class="s1">&gt;</span></p>
-<p class="p2"><span class="s3">&lt;</span><span class="s4">html</span><span class="s5"> </span><span class="s2">lang</span><span class="s3">=</span><span class="s1">"zh-TW"</span><span class="s3">&gt;</span></p>
-<p class="p3"><span class="s3">&lt;</span><span class="s1">head</span><span class="s3">&gt;</span></p>
-<p class="p4"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s4">meta</span><span class="s5"> </span><span class="s1">charset</span><span class="s3">=</span><span class="s6">"UTF-8"</span><span class="s3">&gt;</span></p>
-<p class="p2"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s4">meta</span><span class="s5"> </span><span class="s2">name</span><span class="s3">=</span><span class="s1">"viewport"</span><span class="s5"> </span><span class="s2">content</span><span class="s3">=</span><span class="s1">"width=device-width, initial-scale=1.0"</span><span class="s3">&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s4">title</span><span class="s3">&gt;</span><span class="s1">關西七日悠閒之旅 </span><span class="s3">&lt;/</span><span class="s4">title</span><span class="s3">&gt;</span></p>
-<p class="p6"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
-<p class="p7"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s1">&lt;!-- React &amp; ReactDOM --&gt;</span></p>
-<p class="p2"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s4">script</span><span class="s5"> </span><span class="s2">crossorigin</span><span class="s5"> </span><span class="s2">src</span><span class="s3">=</span><span class="s1">"https://unpkg.com/react@18/umd/react.production.min.js"</span><span class="s3">&gt;&lt;/</span><span class="s4">script</span><span class="s3">&gt;</span></p>
-<p class="p2"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s4">script</span><span class="s5"> </span><span class="s2">crossorigin</span><span class="s5"> </span><span class="s2">src</span><span class="s3">=</span><span class="s1">"https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"</span><span class="s3">&gt;&lt;/</span><span class="s4">script</span><span class="s3">&gt;</span></p>
-<p class="p6"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
-<p class="p7"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s1">&lt;!-- Babel for JSX --&gt;</span></p>
-<p class="p2"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s4">script</span><span class="s5"> </span><span class="s2">src</span><span class="s3">=</span><span class="s1">"https://unpkg.com/@babel/standalone/babel.min.js"</span><span class="s3">&gt;&lt;/</span><span class="s4">script</span><span class="s3">&gt;</span></p>
-<p class="p6"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
-<p class="p7"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s1">&lt;!-- Tailwind CSS --&gt;</span></p>
-<p class="p2"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s4">script</span><span class="s5"> </span><span class="s2">src</span><span class="s3">=</span><span class="s1">"https://cdn.tailwindcss.com"</span><span class="s3">&gt;&lt;/</span><span class="s4">script</span><span class="s3">&gt;</span></p>
-<p class="p6"><span class="s1"><span class="Apple-converted-space">    </span></span></p>
-<p class="p7"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s1">&lt;!-- Lucide Icons --&gt;</span></p>
-<p class="p2"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s4">script</span><span class="s5"> </span><span class="s2">src</span><span class="s3">=</span><span class="s1">"https://unpkg.com/lucide@latest"</span><span class="s3">&gt;&lt;/</span><span class="s4">script</span><span class="s3">&gt;</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p7"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s1">&lt;!-- Google Fonts --&gt;</span></p>
-<p class="p2"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s4">link</span><span class="s5"> </span><span class="s2">href</span><span class="s3">=</span><span class="s1">"https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&amp;display=swap"</span><span class="s5"> </span><span class="s2">rel</span><span class="s3">=</span><span class="s1">"stylesheet"</span><span class="s3">&gt;</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p3"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s1">style</span><span class="s3">&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span></span><span class="s4">body</span><span class="s1"> {</span></p>
-<p class="p8"><span class="s5"><span class="Apple-converted-space">            </span></span><span class="s2">font-family:</span><span class="s5"> </span><span class="s1">'Zen Maru Gothic'</span><span class="s5">, </span><span class="s8">sans-serif</span><span class="s5">;</span></p>
-<p class="p4"><span class="s5"><span class="Apple-converted-space">            </span></span><span class="s1">background-color:</span><span class="s5"> </span><span class="s8">#fff1f2</span><span class="s5">; </span><span class="s9">/* Rose-50 */</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
-<p class="p3"><span class="s5"><span class="Apple-converted-space">        </span></span><span class="s1">.hide-scrollbar::-webkit-scrollbar</span><span class="s5"> {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span></span><span class="s2">display:</span><span class="s1"> </span><span class="s8">none</span><span class="s1">;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
-<p class="p3"><span class="s5"><span class="Apple-converted-space">        </span></span><span class="s1">.hide-scrollbar</span><span class="s5"> {</span></p>
-<p class="p4"><span class="s5"><span class="Apple-converted-space">            </span></span><span class="s1">-ms-overflow-style:</span><span class="s5"> </span><span class="s8">none</span><span class="s5">;</span></p>
-<p class="p4"><span class="s5"><span class="Apple-converted-space">            </span></span><span class="s1">scrollbar-width:</span><span class="s5"> </span><span class="s8">none</span><span class="s5">;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
-<p class="p3"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;/</span><span class="s1">style</span><span class="s3">&gt;</span></p>
-<p class="p3"><span class="s3">&lt;/</span><span class="s1">head</span><span class="s3">&gt;</span></p>
-<p class="p3"><span class="s3">&lt;</span><span class="s1">body</span><span class="s3">&gt;</span></p>
-<p class="p2"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s4">div</span><span class="s5"> </span><span class="s2">id</span><span class="s3">=</span><span class="s1">"root"</span><span class="s3">&gt;&lt;/</span><span class="s4">div</span><span class="s3">&gt;</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p2"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;</span><span class="s4">script</span><span class="s5"> </span><span class="s2">type</span><span class="s3">=</span><span class="s1">"text/babel"</span><span class="s3">&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>const { useState, useEffect } = React;</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>// 行程資料</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>const itineraryData = [</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>day: 1,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>date: "5/10 (六)",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>location: "大阪難波",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>weather: "Sunny",<span class="Apple-converted-space"> </span></span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>temp: "18°C - 24°C",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>title: "大阪初見 &amp; 獅子頭",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>stay: "東橫INN 大阪難波西",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>events: [</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "08:55", icon: "Plane", title: "飛機起飛", desc: "帶著好心情出發！(桃園 -&gt; 關西)" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "12:30", icon: "MapPin", title: "抵達關西機場", desc: "入境後搭乘南海電鐵 Rapi:t 直奔難波" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "15:00", icon: "Hotel", title: "飯店 Check-in", desc: "東橫INN 放行李、補妝、稍作休息" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "16:00", icon: "Camera", title: "難波八阪神社 🦁", desc: "必拍巨大獅子頭！吸厄運招勝運" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "18:00", icon: "Utensils", title: "道頓堀 &amp; 心齋橋", desc: "晚餐：一蘭拉麵或章魚燒，跟跑跑人合照" }</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>]</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>day: 2,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>date: "5/11 (日)",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>location: "京都",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>weather: "Cloudy",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>temp: "16°C - 23°C",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>title: "京都經典 &amp; 和服散策",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>stay: "東橫INN 大阪難波西",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>events: [</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "09:00", icon: "Train", title: "前往京都", desc: "從難波出發" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "10:00", icon: "Shrine", title: "伏見稻荷大社 ⛩️", desc: "千本鳥居隧道，紅色視覺震撼" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "12:00", icon: "Utensils", title: "錦市場午餐", desc: "京都的廚房：豆乳甜甜圈、三木雞卵" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "14:00", icon: "Camera", title: "清水寺 &amp; 二三年坂", desc: "清水舞台、音羽瀑布，星巴克榻榻米茶屋下午茶" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "19:00", icon: "Train", title: "返回大阪", desc: "回到難波享用晚餐" }</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>]</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>day: 3,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>date: "5/12 (一)",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>location: "天橋立",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>weather: "Sunny",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>temp: "15°C - 22°C",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>title: "海之京都一日遊",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>stay: "東橫INN 大阪難波西",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>events: [</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "07:20", icon: "Bus", title: "難波集合", desc: "參加一日遊團 (OCAT或VIP Villa)" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "上午", icon: "Mountain", title: "天橋立 飛龍觀 🚠", desc: "搭纜車，「股見」看飛龍在天絕景" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "下午", icon: "Ship", title: "伊根舟屋遊船 🛥️", desc: "欣賞水上屋，買蝦味先餵海鷗" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "18:30", icon: "Home", title: "返回難波解散", desc: "晚餐買便利商店或吉野家，早點休息" }</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>]</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>day: 4,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>date: "5/13 (二)",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>location: "神戶",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>weather: "PartlyCloudy",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>temp: "17°C - 23°C",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>title: "神戶優雅花園與夜景",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>stay: "東橫INN 大阪難波西",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>events: [</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "10:00", icon: "Train", title: "前往神戶三宮", desc: "搭乘阪神電車" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "10:30", icon: "Flower", title: "神戶布引香草園 🌸", desc: "夢幻空中纜車，看海景聞花香" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "14:00", icon: "Home", title: "北野異人館街", desc: "風見雞之館、萌黃之館" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "16:00", icon: "Moon", title: "神戶港 Mosaic", desc: "百萬夜景、神戶塔點燈、麵包超人博物館外觀" }</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>]</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>day: 5,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>date: "5/14 (三)",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>location: "大阪梅田",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>weather: "Rain",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>temp: "18°C - 21°C",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>title: "旗艦購物 &amp; 和牛之夜",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>stay: "東橫INN 大阪難波西",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>events: [</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "11:00", icon: "ShoppingBag", title: "梅田 Grand Front", desc: "無印良品關西旗艦店 (北館4F) 大逛特逛" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "15:30", icon: "Package", title: "戰利品放飯店", desc: "先把東西拿回難波放" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "16:30", icon: "ShoppingBag", title: "心齋橋補貨", desc: "藥妝、Uniqlo 最後衝刺" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "19:30", icon: "Flame", title: "黑毛和牛大餐 🥩", desc: "已預約！(松阪牛燒肉M 或 力丸)" }</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>]</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>day: 6,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>date: "5/15 (四)",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>location: "大阪下町",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>weather: "Sunny",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>temp: "19°C - 25°C",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>title: "老大阪風情 &amp; 市場",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>stay: "東橫INN 大阪難波西",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>events: [</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "10:00", icon: "Utensils", title: "黑門市場早午餐 🦀", desc: "現烤扇貝、海膽、水果大福" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "12:30", icon: "Coffee", title: "千日前道具街", desc: "看逼真食物模型、精緻廚具" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "15:00", icon: "MapPin", title: "新世界 &amp; 通天閣 🗼", desc: "昭和復古風情，必吃「達摩炸串」" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "18:00", icon: "Utensils", title: "道頓堀最後巡禮", desc: "晚餐：大阪燒" }</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>]</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>},</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>{</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>day: 7,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>date: "5/16 (五)",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>location: "大阪 -&gt; 台灣",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>weather: "Sunny",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>temp: "20°C - 26°C",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>title: "收心回家",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>stay: "溫暖的家",</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>events: [</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "09:30", icon: "LogOut", title: "退房", desc: "難波周邊悠閒早餐" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "11:30", icon: "Train", title: "前往機場", desc: "搭乘南海電鐵" },</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{ time: "13:30", icon: "Plane", title: "飛機起飛 ✈️", desc: "帶著滿滿戰利品與回憶回家！" }</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>]</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>];</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>// 圖示元件</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>const Icon = ({ name, className }) =&gt; {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>const icons = {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Plane: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M2 12h20"/&gt;&lt;path d="M13 2l9 10-9 10"/&gt;&lt;path d="M2 12l5-5m0 10l-5-5"/&gt;&lt;/svg&gt;, // Simplified plane for example or use lucide.createIcons</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>MapPin: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/&gt;&lt;circle cx="12" cy="10" r="3"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Hotel: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M10 22v-6.57"/&gt;&lt;path d="M12 11h.01"/&gt;&lt;path d="M12 7h.01"/&gt;&lt;path d="M14 15.43V22"/&gt;&lt;path d="M15 16a5 5 0 0 0-6 0"/&gt;&lt;path d="M8 22v-6.57"/&gt;&lt;path d="M9.6 11h.01"/&gt;&lt;path d="M9.6 7h.01"/&gt;&lt;path d="M4 11h.01"/&gt;&lt;path d="M4 7h.01"/&gt;&lt;path d="M20 11h.01"/&gt;&lt;path d="M20 7h.01"/&gt;&lt;path d="M3 22h18"/&gt;&lt;path d="M16 11h.01"/&gt;&lt;path d="M16 7h.01"/&gt;&lt;path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Camera: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/&gt;&lt;circle cx="12" cy="13" r="3"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Utensils: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/&gt;&lt;path d="M7 2v20"/&gt;&lt;path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Train: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;rect width="16" height="16" x="4" y="3" rx="2"/&gt;&lt;path d="M4 11h16"/&gt;&lt;path d="M12 3v8"/&gt;&lt;path d="m8 19-2 3"/&gt;&lt;path d="m18 22-2-3"/&gt;&lt;path d="M8 15h0"/&gt;&lt;path d="M16 15h0"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Shrine: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M3 21h18"/&gt;&lt;path d="M5 21V7"/&gt;&lt;path d="M19 21V7"/&gt;&lt;path d="M2 7h20"/&gt;&lt;path d="M12 3v18"/&gt;&lt;path d="M4 12h16"/&gt;&lt;/svg&gt;, // Custom approximation for Shrine</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Bus: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M8 6v6"/&gt;&lt;path d="M15 6v6"/&gt;&lt;path d="M2 12h19.6"/&gt;&lt;path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/&gt;&lt;circle cx="7" cy="18" r="2"/&gt;&lt;path d="M9 18h5"/&gt;&lt;circle cx="16" cy="18" r="2"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Mountain: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="m8 3 4 8 5-5 5 15H2L8 3z"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Ship: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/&gt;&lt;path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.9 5.8 2.8 8"/&gt;&lt;path d="M17.5 10l-9-5"/&gt;&lt;path d="M12 21V4"/&gt;&lt;path d="M8 2l4 4"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Home: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/&gt;&lt;polyline points="9 22 9 12 15 12 15 22"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Flower: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M12 7.5a4.5 4.5 0 1 1 4.5 4.5M12 7.5A4.5 4.5 0 1 0 7.5 12M12 7.5V9m-4.5 3a4.5 4.5 0 1 1 4.5-4.5M7.5 12A4.5 4.5 0 1 0 12 16.5M7.5 12H9m3 4.5a4.5 4.5 0 1 1-4.5-4.5M12 16.5A4.5 4.5 0 1 0 16.5 12M12 16.5V15m4.5-3a4.5 4.5 0 1 1-4.5 4.5M16.5 12A4.5 4.5 0 1 0 12 7.5M16.5 12H15"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Moon: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>ShoppingBag: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/&gt;&lt;path d="M3 6h18"/&gt;&lt;path d="M16 10a4 4 0 0 1-8 0"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Package: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="m7.5 4.27 9 5.15"/&gt;&lt;path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/&gt;&lt;path d="m3.3 7 8.7 5 8.7-5"/&gt;&lt;path d="M12 22v-9"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Flame: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.5-3.3.3-1.09.77-2.127 1.45-3.05a2.5 2.5 0 0 0 .55 2.85Z"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Coffee: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M17 8h1a4 4 0 1 1 0 8h-1"/&gt;&lt;path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/&gt;&lt;line x1="6" x2="6" y1="2" y2="4"/&gt;&lt;line x1="10" x2="10" y1="2" y2="4"/&gt;&lt;line x1="14" x2="14" y1="2" y2="4"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>LogOut: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/&gt;&lt;polyline points="16 17 21 12 16 7"/&gt;&lt;line x1="21" x2="9" y1="12" y2="12"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Sunny: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;circle cx="12" cy="12" r="4"/&gt;&lt;path d="M12 2v2"/&gt;&lt;path d="M12 20v2"/&gt;&lt;path d="m4.93 4.93 1.41 1.41"/&gt;&lt;path d="m17.66 17.66 1.41 1.41"/&gt;&lt;path d="M2 12h2"/&gt;&lt;path d="M20 12h2"/&gt;&lt;path d="m6.34 17.66-1.41 1.41"/&gt;&lt;path d="m19.07 4.93-1.41 1.41"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Cloudy: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M17.5 19c0-1.7-1.3-3-3-3h-11c-1.7 0-3 1.3-3 3s1.3 3 3 3h11c1.7 0 3-1.3 3-3Z"/&gt;&lt;path d="M17.5 12a6.5 6.5 0 0 1 0 13h-11a6.5 6.5 0 0 1-0-13h.1a4.5 4.5 0 0 1 8.8 0h2.1Z"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>PartlyCloudy: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M12 2v2"/&gt;&lt;path d="m4.93 4.93 1.41 1.41"/&gt;&lt;path d="M20 12h2"/&gt;&lt;path d="m19.07 4.93-1.41 1.41"/&gt;&lt;path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/&gt;&lt;path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>Rain: &lt;svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}&gt;&lt;path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/&gt;&lt;path d="M16 14v6"/&gt;&lt;path d="M8 14v6"/&gt;&lt;path d="M12 16v6"/&gt;&lt;/svg&gt;,</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>};</span></p>
-<p class="p6"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>// Fallback to lucide.createIcons logic if needed, but direct SVG is safer for standalone single file</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>return icons[name] || icons['MapPin'];<span class="Apple-converted-space"> </span></span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>const WeatherWidget = ({ weather, temp }) =&gt; {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>const getBg = () =&gt; {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>if (weather === 'Sunny') return 'bg-orange-100 text-orange-600 border-orange-200';</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>if (weather === 'Cloudy') return 'bg-slate-100 text-slate-600 border-slate-200';</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>if (weather === 'Rain') return 'bg-blue-100 text-blue-600 border-blue-200';</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>return 'bg-sky-100 text-sky-600 border-sky-200';</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>return (</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm font-bold ${getBg()}`}&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;Icon name={weather} className="w-4 h-4" /&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;span&gt;{temp}&lt;/span&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>)</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>const Countdown = () =&gt; {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>const targetDate = new Date('2026-05-10T00:00:00');</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>function calculateTimeLeft() {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>const difference = +targetDate - +new Date();</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>let timeLeft = {};</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>if (difference &gt; 0) {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>timeLeft = {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>days: Math.floor(difference / (1000 * 60 * 60 * 24)),</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>};</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>} else {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>timeLeft = { days: 0 };</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>return timeLeft;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>useEffect(() =&gt; {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>const timer = setTimeout(() =&gt; {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>setTimeLeft(calculateTimeLeft());</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>}, 1000);</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>return () =&gt; clearTimeout(timer);</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>});</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>return (</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 mb-6 shadow-sm border border-rose-100 text-center"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;p className="text-rose-400 text-xs font-bold uppercase tracking-wider mb-1"&gt;距離出發還有&lt;/p&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;p className="text-3xl font-black text-rose-600"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>{timeLeft.days} &lt;span className="text-sm font-medium text-rose-400"&gt;天&lt;/span&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/p&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>);</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>const App = () =&gt; {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>const [activeDay, setActiveDay] = useState(0);</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>// Handle scroll into view for active day button</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>useEffect(() =&gt; {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>const el = document.getElementById(`day-btn-${activeDay}`);</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>if (el) {</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>}, [activeDay]);</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>const currentDay = itineraryData[activeDay];</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>return (</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>&lt;div className="max-w-md mx-auto min-h-screen bg-rose-50 pb-20 relative overflow-hidden"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{/* Background decoration */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-rose-200 to-rose-50 -z-10"&gt;&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-rose-300 rounded-full blur-3xl opacity-30"&gt;&lt;/div&gt;</span></p>
-<p class="p6"><span class="s1"><span class="Apple-converted-space">                    </span></span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{/* Header */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;header className="px-6 pt-10 pb-4"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;div className="flex justify-between items-start mb-4"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>&lt;h1 className="text-2xl font-black text-rose-900 leading-tight"&gt;關西姊妹淘&lt;br/&gt;七日悠閒之旅&lt;/h1&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>&lt;p className="text-rose-700 text-sm mt-1 font-medium"&gt;2026.05.10 - 05.16&lt;/p&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-rose-100 overflow-hidden"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>{/* Placeholder for the dachshund icon if user adds one later */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>&lt;span className="text-2xl"&gt;🐶&lt;/span&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;Countdown /&gt;</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>{/* Location &amp; Weather Highlight */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;div className="flex items-center justify-between"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;div className="flex items-center text-rose-800 font-bold"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>&lt;Icon name="MapPin" className="w-4 h-4 mr-1" /&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>{currentDay.location}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;WeatherWidget weather={currentDay.weather} temp={currentDay.temp} /&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/header&gt;</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{/* Day Selector */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;div className="sticky top-0 bg-rose-50/95 backdrop-blur-md z-20 py-2 border-b border-rose-100"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;div className="flex overflow-x-auto px-6 gap-3 hide-scrollbar pb-2"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>{itineraryData.map((day, index) =&gt; (</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>&lt;button</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                    </span>key={index}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                    </span>id={`day-btn-${index}`}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                    </span>onClick={() =&gt; setActiveDay(index)}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                    </span>className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-16 rounded-2xl transition-all duration-300 ${</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                        </span>activeDay === index<span class="Apple-converted-space"> </span></span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                        </span>? 'bg-rose-500 text-white shadow-lg scale-105'<span class="Apple-converted-space"> </span></span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                        </span>: 'bg-white text-rose-400 border border-rose-100'</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                    </span>}`}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                    </span>&lt;span className="text-xs font-medium"&gt;Day&lt;/span&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                    </span>&lt;span className="text-lg font-bold"&gt;{day.day}&lt;/span&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>&lt;/button&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>))}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>{/* Main Content */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;main className="px-6 py-6 space-y-6"&gt;</span></p>
-<p class="p6"><span class="s1"><span class="Apple-converted-space">                        </span></span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>{/* Day Header */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;div className="bg-white rounded-3xl p-6 shadow-sm border border-rose-100 animate-fade-in"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;h2 className="text-xl font-bold text-gray-800 mb-2"&gt;{currentDay.title}&lt;/h2&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;div className="flex items-center text-gray-500 text-sm mb-4"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>&lt;Icon name="Hotel" className="w-4 h-4 mr-2" /&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>&lt;span&gt;宿：{currentDay.stay}&lt;/span&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</span></p>
-<p class="p6"><span class="s1"><span class="Apple-converted-space">                            </span></span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>{/* Timeline */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;div className="relative border-l-2 border-rose-100 ml-3 space-y-8 my-6"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>{currentDay.events.map((event, idx) =&gt; (</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                    </span>&lt;div key={idx} className="relative pl-8"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                        </span>{/* Timeline Dot */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                        </span>&lt;div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-rose-500 border-4 border-rose-100"&gt;&lt;/div&gt;</span></p>
-<p class="p6"><span class="s1"><span class="Apple-converted-space">                                        </span></span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                        </span>{/* Time */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                        </span>&lt;span className="inline-block px-2 py-0.5 rounded bg-rose-100 text-rose-600 text-xs font-bold mb-1"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                            </span>{event.time}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                        </span>&lt;/span&gt;</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                        </span>{/* Content Card */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                        </span>&lt;div className="bg-white rounded-xl p-4 shadow-sm border border-gray-50 mt-1 hover:shadow-md transition-shadow"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                            </span>&lt;div className="flex items-center gap-3 mb-2"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                                </span>&lt;div className="p-2 bg-rose-50 text-rose-500 rounded-lg"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                                    </span>&lt;Icon name={event.icon} className="w-5 h-5" /&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                                </span>&lt;h3 className="font-bold text-gray-800"&gt;{event.title}&lt;/h3&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                            </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                            </span>&lt;p className="text-sm text-gray-500 leading-relaxed pl-[44px]"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                                </span>{event.desc}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                            </span>&lt;/p&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                        </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                                </span>))}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>{/* Footer / Notes */}</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;div className="text-center text-rose-300 text-xs pb-10"&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>Made with ❤️ for Sisters Trip 2026</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                            </span>&lt;br/&gt;Weather forecast is simulated based on historical data.</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                    </span>&lt;/main&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">            </span>);</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
-<p class="p6"><span class="s7"></span><br></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>const root = ReactDOM.createRoot(document.getElementById('root'));</span></p>
-<p class="p5"><span class="s1"><span class="Apple-converted-space">        </span>root.render(&lt;App /&gt;);</span></p>
-<p class="p3"><span class="s5"><span class="Apple-converted-space">    </span></span><span class="s3">&lt;/</span><span class="s1">script</span><span class="s3">&gt;</span></p>
-<p class="p3"><span class="s3">&lt;/</span><span class="s1">body</span><span class="s3">&gt;</span></p>
-<p class="p3"><span class="s3">&lt;/</span><span class="s1">html</span><span class="s3">&gt;</span></p>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // 行程資料
+        const itineraryData = [
+            {
+                day: 1,
+                date: "5/10 (六)",
+                location: "大阪難波",
+                weather: "Sunny", 
+                temp: "18°C - 24°C",
+                title: "大阪初見 & 獅子頭",
+                stay: "東橫INN 大阪難波西",
+                events: [
+                    { time: "08:55", icon: "Plane", title: "飛機起飛", desc: "帶著好心情出發！(桃園 -> 關西)" },
+                    { time: "12:30", icon: "MapPin", title: "抵達關西機場", desc: "入境後搭乘南海電鐵 Rapi:t 直奔難波" },
+                    { time: "15:00", icon: "Hotel", title: "飯店 Check-in", desc: "東橫INN 放行李、補妝、稍作休息" },
+                    { time: "16:00", icon: "Camera", title: "難波八阪神社 🦁", desc: "必拍巨大獅子頭！吸厄運招勝運" },
+                    { time: "18:00", icon: "Utensils", title: "道頓堀 & 心齋橋", desc: "晚餐：一蘭拉麵或章魚燒，跟跑跑人合照" }
+                ]
+            },
+            {
+                day: 2,
+                date: "5/11 (日)",
+                location: "京都",
+                weather: "Cloudy",
+                temp: "16°C - 23°C",
+                title: "京都經典 & 和服散策",
+                stay: "東橫INN 大阪難波西",
+                events: [
+                    { time: "09:00", icon: "Train", title: "前往京都", desc: "從難波出發" },
+                    { time: "10:00", icon: "Shrine", title: "伏見稻荷大社 ⛩️", desc: "千本鳥居隧道，紅色視覺震撼" },
+                    { time: "12:00", icon: "Utensils", title: "錦市場午餐", desc: "京都的廚房：豆乳甜甜圈、三木雞卵" },
+                    { time: "14:00", icon: "Camera", title: "清水寺 & 二三年坂", desc: "清水舞台、音羽瀑布，星巴克榻榻米茶屋下午茶" },
+                    { time: "19:00", icon: "Train", title: "返回大阪", desc: "回到難波享用晚餐" }
+                ]
+            },
+            {
+                day: 3,
+                date: "5/12 (一)",
+                location: "天橋立",
+                weather: "Sunny",
+                temp: "15°C - 22°C",
+                title: "海之京都一日遊",
+                stay: "東橫INN 大阪難波西",
+                events: [
+                    { time: "07:20", icon: "Bus", title: "難波集合", desc: "參加一日遊團 (OCAT或VIP Villa)" },
+                    { time: "上午", icon: "Mountain", title: "天橋立 飛龍觀 🚠", desc: "搭纜車，「股見」看飛龍在天絕景" },
+                    { time: "下午", icon: "Ship", title: "伊根舟屋遊船 🛥️", desc: "欣賞水上屋，買蝦味先餵海鷗" },
+                    { time: "18:30", icon: "Home", title: "返回難波解散", desc: "晚餐買便利商店或吉野家，早點休息" }
+                ]
+            },
+            {
+                day: 4,
+                date: "5/13 (二)",
+                location: "神戶",
+                weather: "PartlyCloudy",
+                temp: "17°C - 23°C",
+                title: "神戶優雅花園與夜景",
+                stay: "東橫INN 大阪難波西",
+                events: [
+                    { time: "10:00", icon: "Train", title: "前往神戶三宮", desc: "搭乘阪神電車" },
+                    { time: "10:30", icon: "Flower", title: "神戶布引香草園 🌸", desc: "夢幻空中纜車，看海景聞花香" },
+                    { time: "14:00", icon: "Home", title: "北野異人館街", desc: "風見雞之館、萌黃之館" },
+                    { time: "16:00", icon: "Moon", title: "神戶港 Mosaic", desc: "百萬夜景、神戶塔點燈、麵包超人博物館外觀" }
+                ]
+            },
+            {
+                day: 5,
+                date: "5/14 (三)",
+                location: "大阪梅田",
+                weather: "Rain",
+                temp: "18°C - 21°C",
+                title: "旗艦購物 & 和牛之夜",
+                stay: "東橫INN 大阪難波西",
+                events: [
+                    { time: "11:00", icon: "ShoppingBag", title: "梅田 Grand Front", desc: "無印良品關西旗艦店 (北館4F) 大逛特逛" },
+                    { time: "15:30", icon: "Package", title: "戰利品放飯店", desc: "先把東西拿回難波放" },
+                    { time: "16:30", icon: "ShoppingBag", title: "心齋橋補貨", desc: "藥妝、Uniqlo 最後衝刺" },
+                    { time: "19:30", icon: "Flame", title: "黑毛和牛大餐 🥩", desc: "已預約！(松阪牛燒肉M 或 力丸)" }
+                ]
+            },
+            {
+                day: 6,
+                date: "5/15 (四)",
+                location: "大阪下町",
+                weather: "Sunny",
+                temp: "19°C - 25°C",
+                title: "老大阪風情 & 市場",
+                stay: "東橫INN 大阪難波西",
+                events: [
+                    { time: "10:00", icon: "Utensils", title: "黑門市場早午餐 🦀", desc: "現烤扇貝、海膽、水果大福" },
+                    { time: "12:30", icon: "Coffee", title: "千日前道具街", desc: "看逼真食物模型、精緻廚具" },
+                    { time: "15:00", icon: "MapPin", title: "新世界 & 通天閣 🗼", desc: "昭和復古風情，必吃「達摩炸串」" },
+                    { time: "18:00", icon: "Utensils", title: "道頓堀最後巡禮", desc: "晚餐：大阪燒" }
+                ]
+            },
+            {
+                day: 7,
+                date: "5/16 (五)",
+                location: "大阪 -> 台灣",
+                weather: "Sunny",
+                temp: "20°C - 26°C",
+                title: "收心回家",
+                stay: "溫暖的家",
+                events: [
+                    { time: "09:30", icon: "LogOut", title: "退房", desc: "難波周邊悠閒早餐" },
+                    { time: "11:30", icon: "Train", title: "前往機場", desc: "搭乘南海電鐵" },
+                    { time: "13:30", icon: "Plane", title: "飛機起飛 ✈️", desc: "帶著滿滿戰利品與回憶回家！" }
+                ]
+            }
+        ];
+
+        // SVG Icons embedded directly for single-file portability
+        const Icon = ({ name, className }) => {
+            const icons = {
+                Plane: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 12h20"/><path d="M13 2l9 10-9 10"/><path d="M2 12l5-5m0 10l-5-5"/></svg>,
+                MapPin: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
+                Hotel: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10 22v-6.57"/><path d="M12 11h.01"/><path d="M12 7h.01"/><path d="M14 15.43V22"/><path d="M15 16a5 5 0 0 0-6 0"/><path d="M8 22v-6.57"/><path d="M9.6 11h.01"/><path d="M9.6 7h.01"/><path d="M4 11h.01"/><path d="M4 7h.01"/><path d="M20 11h.01"/><path d="M20 7h.01"/><path d="M3 22h18"/><path d="M16 11h.01"/><path d="M16 7h.01"/><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/></svg>,
+                Camera: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>,
+                Utensils: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>,
+                Train: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="16" height="16" x="4" y="3" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h0"/><path d="M16 15h0"/></svg>,
+                Shrine: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 21h18"/><path d="M5 21V7"/><path d="M19 21V7"/><path d="M2 7h20"/><path d="M12 3v18"/><path d="M4 12h16"/></svg>, 
+                Bus: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>,
+                Mountain: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>,
+                Ship: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.9 5.8 2.8 8"/><path d="M17.5 10l-9-5"/><path d="M12 21V4"/><path d="M8 2l4 4"/></svg>,
+                Home: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+                Flower: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 7.5a4.5 4.5 0 1 1 4.5 4.5M12 7.5A4.5 4.5 0 1 0 7.5 12M12 7.5V9m-4.5 3a4.5 4.5 0 1 1 4.5-4.5M7.5 12A4.5 4.5 0 1 0 12 16.5M7.5 12H9m3 4.5a4.5 4.5 0 1 1-4.5-4.5M12 16.5A4.5 4.5 0 1 0 16.5 12M12 16.5V15m4.5-3a4.5 4.5 0 1 1-4.5 4.5M16.5 12A4.5 4.5 0 1 0 12 7.5M16.5 12H15"/></svg>,
+                Moon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>,
+                ShoppingBag: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>,
+                Package: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-9"/></svg>,
+                Flame: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.5-3.3.3-1.09.77-2.127 1.45-3.05a2.5 2.5 0 0 0 .55 2.85Z"/></svg>,
+                Coffee: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg>,
+                LogOut: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>,
+                Sunny: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>,
+                Cloudy: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17.5 19c0-1.7-1.3-3-3-3h-11c-1.7 0-3 1.3-3 3s1.3 3 3 3h11c1.7 0 3-1.3 3-3Z"/><path d="M17.5 12a6.5 6.5 0 0 1 0 13h-11a6.5 6.5 0 0 1-0-13h.1a4.5 4.5 0 0 1 8.8 0h2.1Z"/></svg>,
+                PartlyCloudy: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>,
+                Rain: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>,
+            };
+            return icons[name] || icons['MapPin']; 
+        };
+
+        const WeatherWidget = ({ weather, temp }) => {
+            const getBg = () => {
+                if (weather === 'Sunny') return 'bg-orange-100 text-orange-600 border-orange-200';
+                if (weather === 'Cloudy') return 'bg-slate-100 text-slate-600 border-slate-200';
+                if (weather === 'Rain') return 'bg-blue-100 text-blue-600 border-blue-200';
+                return 'bg-sky-100 text-sky-600 border-sky-200';
+            }
+
+            return (
+                <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm font-bold ${getBg()}`}>
+                    <Icon name={weather} className="w-4 h-4" />
+                    <span>{temp}</span>
+                </div>
+            )
+        }
+
+        const Countdown = () => {
+            const targetDate = new Date('2026-05-10T00:00:00');
+            const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+            function calculateTimeLeft() {
+                const difference = +targetDate - +new Date();
+                let timeLeft = {};
+
+                if (difference > 0) {
+                    timeLeft = {
+                        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                    };
+                } else {
+                    timeLeft = { days: 0 };
+                }
+                return timeLeft;
+            }
+
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    setTimeLeft(calculateTimeLeft());
+                }, 1000);
+                return () => clearTimeout(timer);
+            });
+
+            return (
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 mb-6 shadow-sm border border-rose-100 text-center">
+                    <p className="text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">距離出發還有</p>
+                    <p className="text-3xl font-black text-rose-600">
+                        {timeLeft.days} <span className="text-sm font-medium text-rose-400">天</span>
+                    </p>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeDay, setActiveDay] = useState(0);
+
+            useEffect(() => {
+                const el = document.getElementById(`day-btn-${activeDay}`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }, [activeDay]);
+
+            const currentDay = itineraryData[activeDay];
+
+            return (
+                <div className="max-w-md mx-auto min-h-screen bg-rose-50 pb-20 relative overflow-hidden">
+                    {/* Background decoration */}
+                    <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-rose-200 to-rose-50 -z-10"></div>
+                    <div className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-rose-300 rounded-full blur-3xl opacity-30"></div>
+                    
+                    {/* Header */}
+                    <header className="px-6 pt-10 pb-4">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h1 className="text-2xl font-black text-rose-900 leading-tight">關西姊妹淘<br/>七日悠閒之旅</h1>
+                                <p className="text-rose-700 text-sm mt-1 font-medium">2026.05.10 - 05.16</p>
+                            </div>
+                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-rose-100 overflow-hidden">
+                                <span className="text-2xl">🐶</span>
+                            </div>
+                        </div>
+
+                        <Countdown />
+
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center text-rose-800 font-bold">
+                                <Icon name="MapPin" className="w-4 h-4 mr-1" />
+                                {currentDay.location}
+                            </div>
+                            <WeatherWidget weather={currentDay.weather} temp={currentDay.temp} />
+                        </div>
+                    </header>
+
+                    {/* Day Selector */}
+                    <div className="sticky top-0 bg-rose-50/95 backdrop-blur-md z-20 py-2 border-b border-rose-100">
+                        <div className="flex overflow-x-auto px-6 gap-3 hide-scrollbar pb-2">
+                            {itineraryData.map((day, index) => (
+                                <button
+                                    key={index}
+                                    id={`day-btn-${index}`}
+                                    onClick={() => setActiveDay(index)}
+                                    className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-16 rounded-2xl transition-all duration-300 ${
+                                        activeDay === index 
+                                        ? 'bg-rose-500 text-white shadow-lg scale-105' 
+                                        : 'bg-white text-rose-400 border border-rose-100'
+                                    }`}
+                                >
+                                    <span className="text-xs font-medium">Day</span>
+                                    <span className="text-lg font-bold">{day.day}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Main Content */}
+                    <main className="px-6 py-6 space-y-6">
+                        
+                        {/* Day Header */}
+                        <div className="bg-white rounded-3xl p-6 shadow-sm border border-rose-100 animate-fade-in">
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{currentDay.title}</h2>
+                            <div className="flex items-center text-gray-500 text-sm mb-4">
+                                <Icon name="Hotel" className="w-4 h-4 mr-2" />
+                                <span>宿：{currentDay.stay}</span>
+                            </div>
+                            
+                            {/* Timeline */}
+                            <div className="relative border-l-2 border-rose-100 ml-3 space-y-8 my-6">
+                                {currentDay.events.map((event, idx) => (
+                                    <div key={idx} className="relative pl-8">
+                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-rose-500 border-4 border-rose-100"></div>
+                                        <span className="inline-block px-2 py-0.5 rounded bg-rose-100 text-rose-600 text-xs font-bold mb-1">
+                                            {event.time}
+                                        </span>
+                                        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-50 mt-1 hover:shadow-md transition-shadow">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <div className="p-2 bg-rose-50 text-rose-500 rounded-lg">
+                                                    <Icon name={event.icon} className="w-5 h-5" />
+                                                </div>
+                                                <h3 className="font-bold text-gray-800">{event.title}</h3>
+                                            </div>
+                                            <p className="text-sm text-gray-500 leading-relaxed pl-[44px]">
+                                                {event.desc}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="text-center text-rose-300 text-xs pb-10">
+                            Made with ❤️ for Sisters Trip 2026
+                            <br/>Weather forecast is simulated based on historical data.
+                        </div>
+
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
