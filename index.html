@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>關西姊妹淘七日悠閒之旅：多城市天氣與日幣換算</title>
+    <title>關西姊妹淘七日悠閒之旅 - 最終確認版</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -15,9 +15,9 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts: 圓體字讓行程看起來更可愛 -->
+    <!-- Google Fonts - Zen Maru Gothic -->
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
-    
+
     <style>
         body {
             font-family: 'Zen Maru Gothic', sans-serif;
@@ -27,15 +27,15 @@
             display: none;
         }
         .hide-scrollbar {
-            -ms-overflow-style: none; /* IE and Edge */
-            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
         @keyframes fade-in {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .fade-in {
-            animation: fade-in 0.5s ease-out;
+        .animate-fade-in {
+            animation: fade-in 0.5s ease-out forwards;
         }
     </style>
 </head>
@@ -43,432 +43,518 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useCallback } = React;
+        const { useState, useEffect, useCallback, useMemo } = React;
 
-        // --- Global Config and Utilities ---
-        const MAX_RETRIES = 3;
+        // Firebase & Firestore Global Variables Setup (as required by environment)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // --- FINALIZED TRIP DATA ---
-        const TRIP_SUMMARY = "這是一份為你們量身打造、最終定案的【關西姊妹淘七日悠閒之旅 (2026/5/10-5/16)】行程總表。全程連住難波，結合了天橋立跟團的輕鬆、和牛大餐的美味，以及無印良品旗艦店的購物樂趣。這趟旅程主打悠閒不趕路，讓姐妹們能盡情享受京阪神的優雅風情。";
-        
-        // 行程數據保持不變
-        const tripData = [
-            { 
-                day: 1, date: "5/10 (六)", title: "抵達與震撼獅子頭 🦁", location: "大阪難波", 
+        /**
+         * 關西姊妹淘七日悠閒之旅 行程表 (Day 1 - Day 7) - 最終確認版 (2026/5/10-5/16)
+         */
+        const initialItinerary = [
+            {
+                day: 1,
+                date: "星期六 (5/10)",
+                theme: "抵達與震撼獅子頭",
                 events: [
-                    { time: "08:55-12:30", description: "飛機抵達關西機場 (KIX)", landmark: false },
-                    { time: "13:30", description: "搭乘南海電鐵 Rapi:t 直達難波站", landmark: false },
-                    { time: "15:00", description: "飯店 Check-in（放行李、補妝）", landmark: false },
-                    { time: "16:00-17:00", description: "【難波八阪神社】 🦁 必拍！", landmark: true, query: "難波八阪神社" },
-                    { time: "18:00", description: "道頓堀 & 心齋橋晚餐：一蘭拉麵/章魚燒", landmark: true, query: "道頓堀" },
-                ] 
+                    { time: "08:55", name: "飛機抵達關西機場", description: "08:55-12:30：飛機抵達關西機場，準備入境。", location: "KIX" },
+                    { time: "13:30", name: "搭乘南海電鐵 Rapi:t", description: "直達難波站。", location: "難波" },
+                    { time: "15:00", name: "飯店 Check-in", description: "飯店 Check-in（放行李、補妝）。住宿：東橫INN 大阪難波西。", location: "難波" },
+                    { time: "16:00", name: "難波八阪神社 🦁", description: "走路去被巨大的獅子頭震撼一下，吸走厄運、招來好運（必拍！）。", location: "難波八阪神社" },
+                    { time: "18:00", name: "道頓堀 & 心齋橋 晚餐", description: "一蘭拉麵 或 章魚燒。跟固力果跑跑人看板合照。", location: "道頓堀" },
+                ]
             },
-            { 
-                day: 2, date: "5/11 (日)", title: "京都經典：千本鳥居 & 清水舞台 ⛩️", location: "京都", 
+            {
+                day: 2,
+                date: "星期日 (5/11)",
+                theme: "京都經典：千本鳥居 & 清水舞台",
                 events: [
-                    { time: "09:00", description: "從難波出發前往京都", landmark: false },
-                    { time: "10:00-11:30", description: "【伏見稻荷大社】 ⛩️ 走千本鳥居", landmark: true, query: "伏見稻荷大社" },
-                    { time: "12:00-13:30", description: "【錦市場】 (午餐) - 邊走邊吃", landmark: true, query: "錦市場" },
-                    { time: "14:00-17:00", description: "【清水寺 & 二三年坂】 🏯 逛老街小店", landmark: true, query: "清水寺" },
-                    { time: "下午茶", description: "星巴克京都二寧坂茶屋店（榻榻米）", landmark: true, query: "星巴克京都二寧坂茶屋店" },
-                    { time: "19:00", description: "回到大阪難波吃晚餐", landmark: false },
-                ] 
+                    { time: "09:00", name: "從難波出發前往京都", description: "搭乘 JR 或其他交通工具前往京都。", location: "京都" },
+                    { time: "10:00", name: "伏見稻荷大社 ⛩️", description: "走進綿延不絕的紅色千本鳥居隧道。", location: "伏見稻荷" },
+                    { time: "12:00", name: "錦市場 (午餐)", description: "京都的廚房，邊走邊吃（豆乳甜甜圈、三木雞卵、炸魚板）。", location: "錦市場" },
+                    { time: "14:00", name: "清水寺 & 二三年坂 🏯", description: "著名的清水舞台、音羽瀑布。順路逛二三年坂的老街小店。", location: "清水寺" },
+                    { time: "16:00", name: "星巴克京都二寧坂茶屋店", description: "推薦下午茶，體驗榻榻米座位。", location: "二寧坂" },
+                    { time: "19:00", name: "回到大阪難波吃晚餐", description: "返回大阪難波，自由選擇晚餐地點。", location: "難波" },
+                ]
             },
-            { 
-                day: 3, date: "5/12 (一)", title: "海之京都：天橋立 & 伊根舟屋 (跟團) 🚢", location: "天橋立/伊根", 
+            {
+                day: 3,
+                date: "星期一 (5/12)",
+                theme: "海之京都：天橋立 & 伊根舟屋 (跟團)",
                 events: [
-                    { time: "07:20", description: "難波集合 (OCAT/VIP Villa，視報名團而定)", landmark: false },
-                    { time: "上午", description: "【天橋立】 🚠 搭纜車上「飛龍觀」", landmark: true, query: "天橋立" },
-                    { time: "下午", description: "【伊根舟屋】 🛥️ 搭遊覽船、餵海鷗", landmark: true, query: "伊根舟屋" },
-                    { time: "18:30", description: "巴士回到難波解散", landmark: false },
-                    { time: "晚餐", description: "飯店附近便利商店或吉野家簡單吃，早點休息", landmark: false },
-                ] 
+                    { time: "07:20", name: "難波集合 (跟團)", description: "難波集合 (OCAT 或 VIP Villa，視報名的團而定)。", location: "難波集合點" },
+                    { time: "上午", name: "天橋立 🚠", description: "搭纜車上「飛龍觀」，彎腰從跨下看飛龍在天的絕景。", location: "天橋立" },
+                    { time: "下午", name: "伊根舟屋 🛥️", description: "搭乘遊覽船，欣賞浮在水面上的舟屋群，還可以餵海鷗。", location: "伊根" },
+                    { time: "18:30", name: "巴士回到難波解散", description: "結束一日遊行程。", location: "難波" },
+                    { time: "晚餐", name: "簡單晚餐，早點休息", description: "在飯店附近便利商店或吉野家簡單吃，早點休息。", location: "難波" },
+                ]
             },
-            { 
-                day: 4, date: "5/13 (二)", title: "神戶優雅行：花園與夜景 🎡", location: "神戶", 
+            {
+                day: 4,
+                date: "星期二 (5/13)",
+                theme: "神戶優雅行：花園與夜景",
                 events: [
-                    { time: "10:00", description: "搭阪神電車前往神戶三宮", landmark: false },
-                    { time: "10:30-13:30", description: "【神戶布引香草園】 🌸 搭纜車、賞花", landmark: true, query: "神戶布引香草園" },
-                    { time: "14:00-15:30", description: "【北野異人館街】 🏠 參觀風見雞之館", landmark: true, query: "北野異人館街" },
-                    { time: "16:00-19:00", description: "【神戶港 Mosaic 廣場】 🎡 看神戶塔點燈/百萬夜景", landmark: true, query: "神戶港" },
-                ] 
+                    { time: "10:00", name: "前往神戶三宮", description: "搭阪神電車前往神戶三宮。", location: "神戶三宮" },
+                    { time: "10:30", name: "神戶布引香草園 🌸", description: "搭乘夢幻空中纜車上山，看海景、聞花香，非常療癒。", location: "神戶" },
+                    { time: "14:00", name: "北野異人館街 🏠", description: "參觀風見雞之館、萌黃之館（充滿異國風情的洋房）。", location: "北野異人館街" },
+                    { time: "16:00", name: "神戶港 Mosaic 廣場 🎡", description: "看麵包超人博物館(外觀)、神戶塔點燈。", location: "神戶港" },
+                    { time: "18:00", name: "欣賞神戶百萬夜景", description: "欣賞著名的神戶百萬夜景，後返回難波。", location: "神戶港" },
+                ]
             },
-            { 
-                day: 5, date: "5/14 (三)", title: "旗艦購物 & 黑毛和牛之夜 🥩", location: "大阪梅田/難波", 
+            {
+                day: 5,
+                date: "星期三 (5/14)",
+                theme: "旗艦購物 & 黑毛和牛之夜",
                 events: [
-                    { time: "11:00-15:00", description: "梅田商圈 (Grand Front Osaka) - 【無印良品 關西旗艦店】", landmark: true, query: "Grand Front Osaka" },
-                    { time: "15:30", description: "先把戰利品拿回難波飯店放", landmark: false },
-                    { time: "16:30-18:30", description: "心齋橋補貨（藥妝、Uniqlo、零食）", landmark: true, query: "心齋橋" },
-                    { time: "19:30", description: "晚餐：【黑毛和牛大餐】 🥩 (松阪牛 M / 燒肉力丸) - 務必提前一個月訂位！", landmark: true, query: "大阪和牛餐廳" },
-                ] 
+                    { time: "11:00", name: "梅田商圈 (Grand Front Osaka) 🛍️", description: "目標：【無印良品 關西旗艦店】 (北館 4F)，關西最大間！", location: "梅田" },
+                    { time: "15:30", name: "戰利品拿回難波飯店放", description: "先把戰利品拿回難波飯店放，減輕負重。", location: "難波" },
+                    { time: "16:30", name: "心齋橋補貨", description: "藥妝、Uniqlo、零食等。", location: "心齋橋" },
+                    { time: "19:30", name: "晚餐：黑毛和牛大餐 🥩", description: "推薦：松阪牛燒肉 M (法善寺橫丁) 或 燒肉力丸。務必提前一個月訂位！", location: "法善寺橫丁" },
+                ]
             },
-            { 
-                day: 6, date: "5/15 (四)", title: "老大阪風情：市場與通天閣 🗼", location: "大阪難波/新世界", 
+            {
+                day: 6,
+                date: "星期四 (5/15)",
+                theme: "老大阪風情：市場與通天閣",
                 events: [
-                    { time: "10:00-12:00", description: "【黑門市場】 🦀 早午餐：現烤海鮮、和牛串燒", landmark: true, query: "黑門市場" },
-                    { time: "12:30-14:30", description: "【千日前道具街】 🍳 逛食物模型、精緻廚具", landmark: true, query: "千日前道具街" },
-                    { time: "15:00-17:00", description: "【新世界 & 通天閣】 🗼 充滿昭和復古味", landmark: true, query: "通天閣 新世界" },
-                    { time: "點心", description: "必吃 大阪炸串 (Kushikatsu)，推薦「達摩炸串」", landmark: false },
-                    { time: "晚餐", description: "道頓堀最後巡禮（大阪燒）", landmark: false },
-                ] 
+                    { time: "10:00", name: "黑門市場 🦀 (早午餐)", description: "現烤扇貝、海膽、神戶牛串燒、水果大福。", location: "黑門市場" },
+                    { time: "12:30", name: "千日前道具街 🍳", description: "看看超逼真的食物模型、日本製的精緻廚具。", location: "千日前" },
+                    { time: "15:00", name: "新世界 & 通天閣 🗼", description: "充滿昭和復古味，誇張的立體招牌。", location: "新世界" },
+                    { time: "16:00", name: "點心：大阪炸串", description: "必吃 大阪炸串 (Kushikatsu)，推薦「達摩炸串」。", location: "新世界" },
+                    { time: "晚餐", name: "道頓堀最後巡禮 (大阪燒)", description: "在道頓堀享受最後一次經典大阪燒。", location: "道頓堀" },
+                ]
             },
-            { 
-                day: 7, date: "5/16 (五)", title: "收心回家 ✈️", location: "難波/KIX", 
+            {
+                day: 7,
+                date: "星期五 (5/16)",
+                theme: "收心回家",
                 events: [
-                    { time: "09:30", description: "退房，行李可寄放飯店或拉至車站寄放", landmark: false },
-                    { time: "10:00", description: "難波周邊找間咖啡廳享用悠閒早餐", landmark: false },
-                    { time: "11:30", description: "搭乘南海電鐵 前往關西機場", landmark: false },
-                    { time: "13:30", description: "搭機返台，帶著滿滿回憶（和戰利品）回家！", landmark: false },
-                ] 
-            },
+                    { time: "09:30", name: "退房與行李寄放", description: "退房，行李可寄放飯店或拉至車站寄放。", location: "難波" },
+                    { time: "10:00", name: "悠閒早餐", description: "難波周邊找間咖啡廳享用悠閒早餐。", location: "難波" },
+                    { time: "11:30", name: "搭乘南海電鐵 前往關西機場", description: "前往 KIX。", location: "難波" },
+                    { time: "13:30", name: "搭機返台", description: "帶著滿滿回憶（和戰利品）回家！", location: "KIX" },
+                ]
+            }
         ];
 
-        // --- HARDCODED LANDMARK INFO (Fallback Descriptions) ---
-        const HARDCODED_INFO = {
-            "難波八阪神社": "巨大且震撼的獅子頭形狀的舞殿是神社的最大特色，據說能吞噬厄運並帶來勝利。",
-            "道頓堀": "大阪最著名的地標，以「食倒」文化聞名，Glico跑跑人招牌和各種誇張的立體招牌是必看亮點。",
-            "伏見稻荷大社": "以綿延不絕的朱紅色「千本鳥居」聞名，是京都代表性的景點之一，充滿神秘的宗教氛圍。",
-            "錦市場": "被譽為「京都的廚房」，擁有數百年歷史，販售各種新鮮海產、京野菜、漬物和獨特小吃。",
-            "清水寺": "京都最古老的寺院，著名的「清水舞台」由數百根木柱支撐，可俯瞰京都市景，是世界文化遺產。",
-            "星巴克京都二寧坂茶屋店": "全球首間榻榻米座位的星巴克，完美融合了傳統日式町家建築與現代咖啡文化。",
-            "天橋立": "日本三景之一，一個全長約3.6公里的沙洲，形狀看似一道連結天地的橋樑，適合從高處倒頭觀看。",
-            "伊根舟屋": "沿著海灣建造的獨特日式傳統建築，一樓是船庫，二樓是生活空間，被譽為「海之京都」。",
-            "神戶布引香草園": "位於山頂，是日本最大的香草園之一，可以搭乘纜車上山，眺望神戶市景與港口。",
-            "北野異人館街": "保留了明治時代外國人居住的西式建築群，風格獨特，充滿異國情調。",
-            "神戶港": "充滿現代感的港灣地區，以紅色地標神戶塔和 Mosaic 廣場聞名，是欣賞神戶百萬夜景的絕佳地點。",
-            "Grand Front Osaka": "梅田的大型複合式商業設施，包括無印良品全球旗艦店等，是購物和美食的集中地。",
-            "心齋橋": "大阪最繁華的購物街之一，聚集了藥妝店、時尚品牌和各種特色小店。",
-            "大阪和牛餐廳": "在大阪，您可以享用到頂級的黑毛和牛，如松阪牛或神戶牛，是肉食愛好者的天堂。",
-            "黑門市場": "被稱為「大阪人的廚房」，以新鮮的海鮮、河豚、和牛和各種在地小吃聞名。",
-            "千日前道具街": "專門販售廚房用品、餐具和食物模型的街道，是餐飲業者的天堂，也是購買伴手禮的好去處。",
-            "通天閣 新世界": "大阪的象徵性地標，位於充滿懷舊昭和風情的新世界地區，可以登上展望台俯瞰城市。",
-        };
-        
-        // --- Gemini API Utilities for Landmark Info, Weather, and Exchange Rate ---
-        const callGeminiApi = async (prompt, systemInstruction, isExchangeRate = false) => {
-            const apiKey = ""; // API key is handled by the environment
-            const modelName = "gemini-2.5-flash-preview-09-2025";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        // --- Utility Components ---
 
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                tools: [{ "google_search": {} }],
-                systemInstruction: {
-                    parts: [{ text: systemInstruction }]
-                },
-            };
+        const Header = ({ title }) => (
+            <header className="bg-rose-500 text-white p-4 shadow-lg sticky top-0 z-10 rounded-b-xl">
+                <h1 className="text-xl font-bold text-center tracking-wider">{title}</h1>
+            </header>
+        );
 
-            for (let i = 0; i < MAX_RETRIES; i++) {
-                try {
-                    const delay = Math.pow(2, i) * 1000;
-                    if (i > 0) await new Promise(resolve => setTimeout(resolve, delay));
-
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        if (response.status === 429 && i < MAX_RETRIES - 1) continue;
-                        throw new Error(`API call failed with status: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-
-                    if (text) {
-                        if (isExchangeRate) {
-                            const match = text.match(/[\d.]+/);
-                            return match ? parseFloat(match[0]) : 'ERROR';
-                        }
-                        return text;
-                    }
-                    return 'ERROR';
-
-                } catch (error) {
-                    console.error("API call failed:", error);
-                    if (i === MAX_RETRIES - 1) return "ERROR";
-                }
-            }
-            return "ERROR";
-        };
-        
-        // Component: LandmarkInfo (景點介紹查詢元件)
-        const LandmarkInfo = ({ query }) => {
-            const [info, setInfo] = useState(HARDCODED_INFO[query] || "無簡短描述。");
-            const [loading, setLoading] = useState(false);
-            const [error, setError] = useState(null);
-            const [queried, setQueried] = useState(false);
-
-            const fetchLandmarkInfo = async (query) => {
-                const prompt = `以繁體中文，用一到兩句話簡述日本景點 ${query} 的特色。`;
-                const system = "你是一個旅遊嚮導。請根據景點名稱，提供簡潔、吸引人且適合旅遊手冊的景點介紹。只輸出簡介內容，不要加入任何標題或多餘的文字。";
-                return callGeminiApi(prompt, system);
-            };
-
-            const getInfo = useCallback(async () => {
-                setLoading(true);
-                setError(null);
-                setInfo(null);
-                const result = await fetchLandmarkInfo(query);
-                if (result && result !== 'ERROR') {
-                    setInfo(result);
-                    setQueried(true);
-                } else {
-                    setError("無法連線至查詢服務，請檢查網路。");
-                    setInfo(HARDCODED_INFO[query] || "無簡短描述。");
-                }
-                setLoading(false);
-            }, [query]);
-
-            return (
-                <div className="mt-3 pt-3 border-t border-rose-100">
-                    <p className="text-xs font-bold text-rose-600 mb-1">【景點特色】</p>
-                    
-                    {loading ? (
-                        <div className="flex items-center text-sm text-rose-500">
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            正在查詢景點特色...
-                        </div>
-                    ) : (
-                        <p className="text-sm text-gray-700 leading-relaxed">{info}</p>
-                    )}
-
-                    {error && <p className="text-xs text-red-500 mt-2">*{error}</p>}
-                    
-                    {!queried && !loading && (
-                        <button 
-                            onClick={getInfo}
-                            className="mt-3 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition duration-150 border-b border-dashed border-indigo-200"
-                        >
-                            嘗試即時查詢最新特色 🌐
-                        </button>
-                    )}
-                </div>
-            );
-        };
-
-        // Component: EventCard (行程卡片)
-        const EventCard = ({ event }) => (
-            <div className="bg-white p-4 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-[1.01] border border-rose-100">
-                <p className="text-sm font-semibold text-gray-800">{event.description}</p>
-                {event.landmark && event.query && <LandmarkInfo query={event.query} />}
+        const DaySelector = ({ days, activeDay, setActiveDay }) => (
+            <div className="flex overflow-x-auto hide-scrollbar p-3 space-x-2 bg-rose-100/50 shadow-inner sticky top-14 z-10">
+                {days.map((dayData) => (
+                    <button
+                        key={dayData.day}
+                        onClick={() => setActiveDay(dayData.day)}
+                        className={`
+                            px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-300
+                            ${activeDay === dayData.day
+                                ? 'bg-rose-500 text-white shadow-md transform scale-105'
+                                : 'bg-white text-rose-600 hover:bg-rose-200/80'
+                            }
+                        `}
+                    >
+                        Day {dayData.day} <span className="text-xs">({dayData.date.split(' ')[0]})</span>
+                    </button>
+                ))}
             </div>
         );
 
-        // Component: UtilityCard (即時資訊卡片)
-        const UtilityCard = () => {
-            // Define cities for selection
-            const CITIES = [
-                { name: '大阪難波', label: '大阪難波' },
-                { name: '京都', label: '京都' },
-                { name: '神戶', label: '神戶' },
-            ];
+        const EventCard = ({ event }) => (
+            <div className="bg-white p-4 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-330 relative z-0 border-t-4 border-rose-400">
+                <h3 className="text-lg font-bold text-gray-800 mb-1">{event.name}</h3>
+                <p className="text-sm text-gray-600 mb-2">{event.description}</p>
+                {event.location && (
+                    <div className="flex items-center text-xs text-rose-500 font-medium bg-rose-50 px-2 py-1 rounded-full w-fit">
+                        <span className="mr-1">📍</span> {event.location}
+                    </div>
+                )}
+            </div>
+        );
 
-            // State for selected city, default to the main base
-            const [selectedCity, setSelectedCity] = useState(CITIES[0].name); 
+        // --- Currency Converter Component ---
 
-            // State for Weather
-            const [weather, setWeather] = useState("點擊城市按鈕查詢天氣");
-            const [weatherLoading, setWeatherLoading] = useState(false);
-            
-            // State for Exchange Rate (Rate is TWD per 1 JPY)
-            const [rate, setRate] = useState(null); 
-            const [jpyInput, setJpyInput] = useState(''); 
-            const [rateLoading, setRateLoading] = useState(false);
-            
-            // --- Fetch Weather ---
-            const fetchWeather = useCallback(async (city) => {
-                setWeatherLoading(true);
-                // Dynamically update the prompt with the selected city
-                const prompt = `現在${city}的天氣狀況、溫度和體感，請用一句話簡述。例如：『目前晴朗，溫度 25°C，體感舒適。』`;
-                const system = "你是一個即時天氣播報員，根據最新的網路查詢結果，以繁體中文簡潔地回答。只輸出描述內容。";
-                
-                // Clear weather display while fetching new data
-                setWeather('查詢中...'); 
+        const CurrencyConverter = ({ fetchExchangeRate }) => {
+            const [rate, setRate] = useState(null);
+            const [jpyAmount, setJpyAmount] = useState(10000);
+            const [isLoading, setIsLoading] = useState(false);
+            const [apiError, setApiError] = useState(null);
+            const [lastUpdated, setLastUpdated] = useState(null);
 
-                const result = await callGeminiApi(prompt, system);
-                setWeather(result === 'ERROR' ? '無法取得即時天氣' : result);
-                setWeatherLoading(false);
-            }, []);
-
-            // Handle city change and trigger weather fetch
-            const handleCityChange = (city) => {
-                setSelectedCity(city);
-                fetchWeather(city);
-            };
-
-            // --- Fetch Exchange Rate (JPY to TWD) ---
-            const fetchExchangeRate = useCallback(async () => {
-                setRateLoading(true);
-                // Prompt to get JPY to TWD rate (TWD per 1 JPY)
-                const prompt = "日圓 (JPY) 兌換台灣新台幣 (TWD) 的即時匯率是多少？（例如：1 JPY = X TWD）。請只輸出數字 X，精確到小數點後四位。";
-                const system = "你是一個金融數據機器人，請提供最新的 JPY 兌換 TWD 的數字。";
-                const result = await callGeminiApi(prompt, system, true); // true for isExchangeRate
-                
-                if (typeof result === 'number') {
-                    setRate(result); // result is TWD per 1 JPY
-                } else {
-                    setRate(null);
-                    console.error("Failed to parse exchange rate:", result);
-                }
-                setRateLoading(false);
-            }, []);
-
+            // Fetch the rate on mount
             useEffect(() => {
-                // Initial fetch for utilities (default to selectedCity)
-                fetchWeather(selectedCity);
-                fetchExchangeRate();
-            }, [fetchWeather, fetchExchangeRate]);
+                handleFetchRate();
+            }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-            // Calculation: TWD Output = JPY Input * Rate (TWD/JPY)
-            const twdOutput = rate && jpyInput ? (parseFloat(jpyInput) * rate).toFixed(2) : '0.00';
-            const displayRate = rate ? rate.toFixed(4) : 'N/A'; // Use 4 decimal places for precision
+            const handleFetchRate = useCallback(async () => {
+                setApiError(null);
+                setIsLoading(true);
 
-            // --- Utility UI ---
+                const result = await fetchExchangeRate();
+                
+                if (result.error) {
+                    setApiError(result.error);
+                } else if (result.rate) {
+                    setRate(result.rate);
+                    setLastUpdated(new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }));
+                } else {
+                    setApiError("無法解析匯率數據，請嘗試重新整理。");
+                }
+                
+                setIsLoading(false);
+            }, [fetchExchangeRate]);
+
+            const convertedTwd = useMemo(() => {
+                const amount = parseFloat(jpyAmount);
+                if (rate && !isNaN(amount) && amount >= 0) {
+                    return (amount * rate).toFixed(2);
+                }
+                return '0.00';
+            }, [jpyAmount, rate]);
+
             return (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* 1. Weather Card (Multi-city selector) */}
-                    <div className="bg-white p-5 rounded-3xl shadow-lg border-2 border-indigo-200">
-                        <div className="flex items-center text-indigo-600 mb-2">
-                            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.975 4 4 0 10-7.75 1.764L7 15h2.529a4 4 0 01-.5-1.928M12 11V6M9 9l3-3 3 3"></path></svg>
-                            <h3 className="font-bold text-lg">即時天氣 ({selectedCity})</h3> 
-                        </div>
-
-                        {/* City Selection Buttons */}
-                        <div className="flex space-x-2 mb-3 overflow-x-auto hide-scrollbar">
-                            {CITIES.map((city) => (
-                                <button
-                                    key={city.name}
-                                    onClick={() => handleCityChange(city.name)}
-                                    // Dynamic styling based on selection
-                                    className={`flex-shrink-0 text-xs px-3 py-1 rounded-full font-medium transition ${
-                                        selectedCity === city.name
-                                            ? 'bg-indigo-600 text-white shadow-md'
-                                            : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
-                                    }`}
-                                    disabled={weatherLoading} // Disable while loading
+                // Compact Layout for Converter
+                <div className="p-4 mb-6 bg-white rounded-2xl shadow-xl border border-pink-300">
+                    <div className="flex justify-between items-start mb-3 border-b pb-2">
+                        <h2 className="text-lg font-bold text-pink-600 flex items-center">
+                            <span className="text-xl mr-2">💰</span> JPY 兌 TWD
+                        </h2>
+                        <div className="text-right">
+                            <p className="text-sm font-semibold text-gray-700">
+                                1 JPY ≈ <span className="text-pink-600">{rate ? rate.toFixed(4) : '---'}</span> TWD
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                                更新: {lastUpdated || '載入中...'}
+                                <button 
+                                    onClick={handleFetchRate} 
+                                    disabled={isLoading}
+                                    className={`ml-1 text-pink-500 hover:text-pink-700 transition-colors ${isLoading ? 'opacity-50' : ''}`}
+                                    title="重新整理匯率"
                                 >
-                                    {city.label}
+                                    {isLoading ? <span className="text-xs animate-spin">🌀</span> : '🔄'}
                                 </button>
-                            ))}
+                            </p>
                         </div>
-
-                        {/* Weather Display */}
-                        {weatherLoading ? (
-                            <div className="text-sm text-indigo-400 flex items-center">
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                查詢中...
-                            </div>
-                        ) : (
-                            <p className="text-gray-700 font-medium text-sm">{weather}</p>
-                        )}
-                        <p className="text-xs text-gray-400 mt-2">*{new Date().toLocaleTimeString('zh-TW')} 資料</p>
                     </div>
 
-                    {/* 2. Exchange Rate Card (JPY to TWD) */}
-                    <div className="bg-white p-5 rounded-3xl shadow-lg border-2 border-pink-200">
-                        <div className="flex items-center text-pink-600 mb-2">
-                            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V8m0 8v-8"></path></svg>
-                            <h3 className="font-bold text-lg">日圓匯率換算 (JPY ➝ TWD)</h3> 
+                    {apiError && (
+                        <p className="text-red-500 text-center mb-3 p-2 text-sm bg-red-50 rounded-lg">
+                            ❌ {apiError}
+                        </p>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3 animate-fade-in">
+                        {/* JPY Input */}
+                        <div className="flex items-center w-full sm:w-1/2">
+                            <input
+                                type="number"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={jpyAmount}
+                                onChange={(e) => setJpyAmount(e.target.value)}
+                                className="w-full p-2 border border-pink-300 rounded-l-lg text-base text-gray-800 focus:outline-none focus:border-pink-500 transition duration-150"
+                                placeholder="日幣金額"
+                                min="0"
+                            />
+                            <span className="p-2 bg-pink-500 text-white rounded-r-lg font-bold text-sm">JPY</span>
                         </div>
-                        {rateLoading ? (
-                            <div className="text-sm text-pink-400 flex items-center">
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                查詢中...
-                            </div>
-                        ) : rate ? (
-                            <div className="mt-2">
-                                <p className="text-sm font-semibold text-gray-600 mb-2">
-                                    即時匯率: 1 JPY = {displayRate} TWD
-                                </p>
-                                <div className="flex items-center space-x-2">
-                                    <input
-                                        type="number"
-                                        value={jpyInput}
-                                        onChange={(e) => setJpyInput(e.target.value)}
-                                        placeholder="輸入日幣金額 (¥)..." 
-                                        className="w-1/2 p-2 border border-pink-300 rounded-lg text-sm focus:ring-pink-500 focus:border-pink-500 transition"
-                                    />
-                                    <span className="text-lg font-bold text-gray-800">=</span>
-                                    <div className="w-1/2 p-2 bg-pink-50 rounded-lg text-sm font-extrabold text-pink-700 text-right shadow-inner">
-                                        NT$ {twdOutput} 
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <p className="text-red-500 text-sm">無法取得匯率資訊</p>
-                        )}
+
+                        {/* Result Display */}
+                        <div className="flex items-center w-full sm:w-1/2 justify-between p-2 bg-pink-50 rounded-lg border border-pink-200 shadow-inner">
+                            <span className="text-sm text-gray-700">TWD 約:</span>
+                            <span className="text-xl font-extrabold text-rose-700">
+                                {convertedTwd}
+                            </span>
+                        </div>
                     </div>
                 </div>
             );
+        };
+        // --- End Currency Converter Component ---
+
+        // --- Weather Feature Components and Logic ---
+
+        const WeatherIcon = ({ condition }) => {
+            let icon = '☀️'; // Default: Sun
+            let color = 'text-yellow-500';
+
+            // Check for Chinese and English keywords
+            if (condition.includes('雨') || condition.includes('Rain') || condition.includes('shower')) {
+                icon = '🌧️';
+                color = 'text-blue-500';
+            } else if (condition.includes('雲') || condition.includes('Cloudy') || condition.includes('partly')) {
+                icon = '☁️';
+                color = 'text-gray-500';
+            } else if (condition.includes('雪') || condition.includes('Snow')) {
+                icon = '❄️';
+                color = 'text-cyan-500';
+            } else if (condition.includes('晴') || condition.includes('Clear')) {
+                icon = '🌞';
+                color = 'text-orange-500';
+            }
+
+            return <span className={`text-5xl ${color}`}>{icon}</span>;
+        };
+
+        const WeatherResultCard = ({ data }) => {
+            return (
+                <div className="p-4 rounded-xl flex items-center justify-between text-left shadow-lg bg-rose-50/70 border border-rose-200 animate-fade-in">
+                    <div className="flex items-center space-x-4">
+                        <WeatherIcon condition={data.text} />
+                        <div>
+                            <h3 className="font-bold text-xl text-gray-800">{data.city}</h3>
+                            <p className="text-sm text-gray-600 mt-1 max-w-[200px] overflow-hidden line-clamp-2" title={data.text}>
+                                {data.text}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {data.sources && data.sources.length > 0 && (
+                        <a 
+                            href={data.sources[0].uri} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-xs text-rose-400 hover:text-rose-600 mt-2 ml-4 truncate max-w-[80px]"
+                            title={`數據來源: ${data.sources[0].title}`}
+                        >
+                            數據來源
+                        </a>
+                    )}
+                </div>
+            )
         }
 
-        // Component: App (Main Layout)
-        const App = () => {
-            const [activeDay, setActiveDay] = useState(tripData[0].day);
+        const WeatherWidget = ({ fetchWeather }) => {
+            const cities = useMemo(() => ['大阪難波', '京都', '神戶'], []);
+            const [selectedCity, setSelectedCity] = useState(cities[0]); 
+            const [allWeatherData, setAllWeatherData] = useState({});
+            const [localIsLoading, setLocalIsLoading] = useState(false);
+            const [localApiError, setLocalApiError] = useState(null);
 
-            // Find the active day's data
-            const currentDay = tripData.find(d => d.day === activeDay);
+            const handleFetchCityWeather = useCallback(async (city) => {
+                setLocalIsLoading(true);
+                setLocalApiError(null);
+                const result = await fetchWeather(city); // Call the parent function
+
+                if (result.error) {
+                    setLocalApiError(`查詢 ${city} 天氣失敗。`);
+                }
+
+                setAllWeatherData(prev => ({ ...prev, [city]: result }));
+                setLocalIsLoading(false);
+            }, [fetchWeather]);
+
+            useEffect(() => {
+                if (!allWeatherData[selectedCity]) {
+                    handleFetchCityWeather(selectedCity);
+                }
+            }, [selectedCity, allWeatherData, handleFetchCityWeather]);
+
+            const now = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const currentData = allWeatherData[selectedCity];
 
             return (
-                <div className="max-w-xl mx-auto min-h-screen pb-4">
-                    {/* Header (Sticky for navigation) */}
-                    <header className="py-6 px-4 bg-white shadow-lg sticky top-0 z-20 rounded-b-3xl mb-4">
-                        <h1 className="text-3xl font-extrabold text-pink-700">
-                            🌸 關西姊妹淘七日悠閒之旅
-                        </h1>
-                        <p className="text-sm text-gray-500 mt-1">
-                            2026年 5月10日 (六) ～ 5月16日 (五)
-                        </p>
-                    </header>
-
-                    <main className="px-4 space-y-8">
-                        
-                        {/* Utility Card (Weather & Exchange Rate) */}
-                        <UtilityCard />
-
-                        {/* Trip Introduction */}
-                        <div className="bg-white p-6 rounded-3xl shadow-2xl border border-pink-200">
-                            <h2 className="text-2xl font-bold text-pink-600 mb-3 flex items-center">
-                                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                行程總覽 (簡介)
-                            </h2>
-                            <p className="text-gray-700 leading-relaxed text-sm">{TRIP_SUMMARY}</p>
-                            <p className="mt-3 text-xs text-gray-500 italic">住宿：全程連住東橫INN 大阪難波西（或難波周邊飯店）</p>
-                        </div>
-
-                        {/* Day Tabs (Sticky for easy switching) */}
-                        <div className="hide-scrollbar overflow-x-auto whitespace-nowrap py-3 sticky top-24 bg-rose-50 z-10 -mx-4 px-4 shadow-inner">
-                            {tripData.map(day => (
+                <div className="p-4 mb-6 bg-white rounded-2xl shadow-xl border border-rose-200">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 border-b pb-4">
+                        <h2 className="text-xl font-bold text-rose-600 flex items-center mb-3 sm:mb-0">
+                            <span className="text-2xl mr-2">🌏</span> 關西即時氣象 ({now})
+                        </h2>
+                        <div className="flex space-x-2">
+                            {cities.map(city => (
                                 <button
-                                    key={day.day}
-                                    onClick={() => setActiveDay(day.day)}
-                                    className={`inline-block px-4 py-2 mx-1 rounded-full text-sm font-semibold transition-all shadow-md transform hover:scale-[1.05] ${
-                                        day.day === activeDay 
-                                            ? 'bg-rose-500 text-white shadow-rose-400/50' 
-                                            : 'bg-white text-rose-600 border border-rose-200 hover:bg-rose-100'
-                                    }`}
+                                    key={city}
+                                    onClick={() => setSelectedCity(city)}
+                                    className={`
+                                        px-3 py-1 text-sm font-medium rounded-full transition-colors duration-200
+                                        ${selectedCity === city 
+                                            ? 'bg-rose-500 text-white shadow-md' 
+                                            : 'bg-rose-100 text-rose-600 hover:bg-rose-200'
+                                        }
+                                    `}
+                                    disabled={localIsLoading}
                                 >
-                                    Day {day.day}
+                                    {/* Only use the first character for compactness in the selector */}
+                                    {city.split('')[0]}
                                 </button>
                             ))}
+                            <button 
+                                onClick={() => handleFetchCityWeather(selectedCity)} 
+                                disabled={localIsLoading}
+                                className={`p-2 rounded-full transition-all flex items-center justify-center ${localIsLoading ? 'bg-gray-200 text-gray-500' : 'bg-rose-100 text-rose-500 hover:bg-rose-200'}`}
+                                title="重新整理當前城市天氣"
+                            >
+                                {localIsLoading ? <span className="text-xl animate-spin">🌀</span> : '🔄'}
+                            </button>
                         </div>
+                    </div>
 
-                        {/* Current Day Itinerary */}
-                        <div key={activeDay} className="fade-in bg-white p-6 rounded-3xl shadow-2xl">
-                            <h2 className="text-3xl font-bold text-gray-800 mb-2">{currentDay.title}</h2>
-                            <p className="text-md font-semibold text-rose-500 mb-4">
-                                {currentDay.date} @ {currentDay.location}
-                            </p>
-                            
+                    {localApiError && (
+                        <p className="text-red-500 text-center mb-3 p-2 text-sm bg-red-50 rounded-lg">
+                            ❌ {localApiError}
+                        </p>
+                    )}
+
+                    {localIsLoading && !currentData && (
+                        <div className="flex justify-center items-center p-8 text-rose-500">
+                            <span className="text-2xl animate-spin mr-2">🌀</span> 正在查詢 {selectedCity} 天氣...
+                        </div>
+                    )}
+
+                    {currentData && !localIsLoading && (
+                        <WeatherResultCard data={currentData} />
+                    )}
+
+                    {!currentData && !localIsLoading && !localApiError && (
+                        <div className="text-center text-gray-500 p-4">
+                            請選擇一個城市查詢即時天氣。
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        // --- End Weather Widget ---
+
+
+        // --- Main App Component ---
+
+        const App = () => {
+            const [activeDay, setActiveDay] = useState(initialItinerary[0].day);
+            
+            // Core Fetching function for Gemini API (Weather/Rate)
+            const geminiFetch = useCallback(async (userQuery, systemPrompt) => {
+                const apiKey = "";
+                const model = 'gemini-2.5-flash-preview-09-2025';
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    tools: [{ "google_search": {} }],
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
+                    },
+                };
+
+                let attempts = 0;
+                const maxAttempts = 3;
+                while (attempts < maxAttempts) {
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const result = await response.json();
+                        const candidate = result.candidates?.[0];
+
+                        if (candidate && candidate.content?.parts?.[0]?.text) {
+                            const text = candidate.content.parts[0].text;
+                            let sources = [];
+                            const groundingMetadata = candidate.groundingMetadata;
+                            if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                                sources = groundingMetadata.groundingAttributions
+                                    .map(attribution => ({ uri: attribution.web?.uri, title: attribution.web?.title }))
+                                    .filter(source => source.uri && source.title);
+                            }
+                            return { text, sources, error: false };
+                        }
+                        return { text: "", sources: [], error: true, errorMessage: "API回應結構異常。" };
+
+                    } catch (err) {
+                        console.error(`Attempt ${attempts + 1} failed for query:`, userQuery, err);
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                            const delay = Math.pow(2, attempts) * 1000;
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                        }
+                    }
+                }
+                return { text: "", sources: [], error: true, errorMessage: "網路連線或服務查詢失敗。" };
+            }, []); 
+
+            // Weather Fetching using the core function
+            const fetchWeather = useCallback(async (city) => {
+                const systemPrompt = "You are a specialized weather reporter. Provide only the current weather, temperature, and condition for the given location in a concise, single sentence in Chinese (Traditional). Do not include any greetings or extra commentary. Always use Google Search for grounding.";
+                const userQuery = `Current weather in ${city} right now.`;
+                const result = await geminiFetch(userQuery, systemPrompt);
+
+                if (result.error) {
+                    return { city, text: result.errorMessage, sources: [], error: true };
+                }
+                return { city, text: result.text, sources: result.sources, error: false };
+            }, [geminiFetch]);
+
+            // Rate Fetching using the core function
+            const fetchExchangeRate = useCallback(async () => {
+                const systemPrompt = "You are a specialized financial data parser. Provide only the current exchange rate for 1 JPY to TWD, formatted precisely as a single number rounded to 4 decimal places, with no units, commentary, or text. For example: '0.2150'.";
+                const userQuery = "Current exchange rate for 1 Japanese Yen (JPY) in New Taiwan Dollars (TWD).";
+                
+                const result = await geminiFetch(userQuery, systemPrompt);
+
+                if (result.error) {
+                    return { error: result.errorMessage };
+                }
+
+                const rateText = result.text.trim();
+                const rateValue = parseFloat(rateText);
+
+                if (!isNaN(rateValue) && rateValue > 0) {
+                    return { rate: rateValue, error: null };
+                }
+                
+                // If parsing fails, return a custom error message
+                return { error: `無法解析匯率：${rateText.substring(0, 30)}...` };
+            }, [geminiFetch]);
+
+
+            const currentDay = initialItinerary.find(d => d.day === activeDay);
+
+            return (
+                <div className="min-h-screen">
+                    <Header title="關西姊妹淘七日悠閒之旅 (購物氣象專用版)" />
+
+                    <DaySelector 
+                        days={initialItinerary} 
+                        activeDay={activeDay} 
+                        setActiveDay={setActiveDay} 
+                    />
+
+                    <main className="p-4 max-w-xl mx-auto">
+                        
+                        {/* 1. Currency Converter (Compact) */}
+                        <CurrencyConverter 
+                            fetchExchangeRate={fetchExchangeRate} 
+                        />
+                        
+                        {/* 2. Instant Weather Widget */}
+                        <WeatherWidget 
+                            fetchWeather={fetchWeather}
+                        />
+
+                        {/* 3. Itinerary Details */}
+                        <div className="bg-white p-4 rounded-2xl shadow-xl mb-6 animate-fade-in">
+                            <h2 className="text-2xl font-bold text-rose-700 mb-2">
+                                Day {currentDay.day}: {currentDay.theme}
+                            </h2>
+                            <p className="text-sm text-gray-500 mb-4">{currentDay.date}</p>
+
                             {/* Timeline */}
                             <div className="relative border-l-2 border-rose-100 ml-3 space-y-8 my-6">
                                 {currentDay.events.map((event, idx) => (
                                     <div key={idx} className="relative pl-8">
-                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-rose-500 border-4 border-rose-100 shadow-lg"></div>
-                                        <span className="inline-block px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-xs font-bold mb-1 shadow-sm">
+                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-rose-500 border-4 border-rose-100"></div>
+                                        <span className="inline-block px-2 py-0.5 rounded bg-rose-100 text-rose-600 text-xs font-bold mb-1 shadow-sm">
                                             {event.time}
                                         </span>
                                         <EventCard event={event} />
@@ -480,17 +566,19 @@
                         {/* Footer */}
                         <div className="text-center text-rose-300 text-xs pb-10">
                             Made with ❤️ for Sisters Trip 2026
-                            <br/>景點介紹已內建，天氣與匯率為即時網路查詢結果。
+                            <br/>即時資訊由 Google 搜尋提供
                         </div>
+
 
                     </main>
                 </div>
             );
         };
 
-        // Render the App
+        // Standard React Bootstrap
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+
     </script>
 </body>
 </html>
