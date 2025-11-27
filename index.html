@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>關西姊妹淘七日悠閒之旅：行程、預算與匯出</title>
+    <title>關西七日悠閒之旅：多城市天氣與日幣換算</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -37,31 +37,24 @@
         .fade-in {
             animation: fade-in 0.5s ease-out;
         }
-        /* Custom Checkbox Style */
-        .toggle-checkbox:checked {
-            border-color: transparent;
-            background-color: #f43f5e; /* Rose-500 */
-        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useCallback } = React;
+        const { useState, useEffect, useCallback } = React;
 
         // --- Global Config and Utilities ---
-        
-        const LOCAL_STORAGE_KEY = 'kansai_sisters_trip_expenses';
-        const DEFAULT_JPY_TO_TWD_RATE = 0.22;
         const MAX_RETRIES = 3;
 
         // --- FINALIZED TRIP DATA ---
-        const TRIP_SUMMARY = "這是一份為你們量身打造、最終定案的【關西姊妹淘七日悠閒之旅 (2026/5/10-5/16)】行程總表。全程連住難波，結合了天橋立跟團的輕鬆、和牛大餐的美味，以及無印良品旗艦店的購物樂趣。這趟旅程主打悠閒不趕路，讓姐妹們能盡情享受京阪神的優雅風情。";
+        const TRIP_SUMMARY = "這是一份為你們量身打造、最終定案的【關西七日悠閒之旅 (2026/5/10-5/16)】行程總表。全程連住難波，結合了天橋立跟團的輕鬆、和牛大餐的美味，以及無印良品旗艦店的購物樂趣。這趟旅程主打悠閒不趕路，讓姐妹們能盡情享受京阪神的優雅風情。";
         
+        // 行程數據保持不變
         const tripData = [
             { 
-                day: 1, date: "5/10 (六)", title: "抵達與震撼獅子頭 🦁", location: "大阪難波", weather: "晴朗，24°C/15°C", 
+                day: 1, date: "5/10 (六)", title: "抵達與震撼獅子頭 🦁", location: "大阪難波", 
                 events: [
                     { time: "08:55-12:30", description: "飛機抵達關西機場 (KIX)", landmark: false },
                     { time: "13:30", description: "搭乘南海電鐵 Rapi:t 直達難波站", landmark: false },
@@ -71,7 +64,7 @@
                 ] 
             },
             { 
-                day: 2, date: "5/11 (日)", title: "京都經典：千本鳥居 & 清水舞台 ⛩️", location: "京都", weather: "多雲，25°C/16°C", 
+                day: 2, date: "5/11 (日)", title: "京都經典：千本鳥居 & 清水舞台 ⛩️", location: "京都", 
                 events: [
                     { time: "09:00", description: "從難波出發前往京都", landmark: false },
                     { time: "10:00-11:30", description: "【伏見稻荷大社】 ⛩️ 走千本鳥居", landmark: true, query: "伏見稻荷大社" },
@@ -82,7 +75,7 @@
                 ] 
             },
             { 
-                day: 3, date: "5/12 (一)", title: "海之京都：天橋立 & 伊根舟屋 (跟團) 🚢", location: "天橋立/伊根", weather: "晴時多雲，22°C/14°C", 
+                day: 3, date: "5/12 (一)", title: "海之京都：天橋立 & 伊根舟屋 (跟團) 🚢", location: "天橋立/伊根", 
                 events: [
                     { time: "07:20", description: "難波集合 (OCAT/VIP Villa，視報名團而定)", landmark: false },
                     { time: "上午", description: "【天橋立】 🚠 搭纜車上「飛龍觀」", landmark: true, query: "天橋立" },
@@ -92,7 +85,7 @@
                 ] 
             },
             { 
-                day: 4, date: "5/13 (二)", title: "神戶優雅行：花園與夜景 🎡", location: "神戶", weather: "晴朗，26°C/18°C", 
+                day: 4, date: "5/13 (二)", title: "神戶優雅行：花園與夜景 🎡", location: "神戶", 
                 events: [
                     { time: "10:00", description: "搭阪神電車前往神戶三宮", landmark: false },
                     { time: "10:30-13:30", description: "【神戶布引香草園】 🌸 搭纜車、賞花", landmark: true, query: "神戶布引香草園" },
@@ -101,7 +94,7 @@
                 ] 
             },
             { 
-                day: 5, date: "5/14 (三)", title: "旗艦購物 & 黑毛和牛之夜 🥩", location: "大阪梅田/難波", weather: "陣雨，23°C/17°C", 
+                day: 5, date: "5/14 (三)", title: "旗艦購物 & 黑毛和牛之夜 🥩", location: "大阪梅田/難波", 
                 events: [
                     { time: "11:00-15:00", description: "梅田商圈 (Grand Front Osaka) - 【無印良品 關西旗艦店】", landmark: true, query: "Grand Front Osaka" },
                     { time: "15:30", description: "先把戰利品拿回難波飯店放", landmark: false },
@@ -110,7 +103,7 @@
                 ] 
             },
             { 
-                day: 6, date: "5/15 (四)", title: "老大阪風情：市場與通天閣 🗼", location: "大阪難波/新世界", weather: "多雲，24°C/16°C", 
+                day: 6, date: "5/15 (四)", title: "老大阪風情：市場與通天閣 🗼", location: "大阪難波/新世界", 
                 events: [
                     { time: "10:00-12:00", description: "【黑門市場】 🦀 早午餐：現烤海鮮、和牛串燒", landmark: true, query: "黑門市場" },
                     { time: "12:30-14:30", description: "【千日前道具街】 🍳 逛食物模型、精緻廚具", landmark: true, query: "千日前道具街" },
@@ -120,7 +113,7 @@
                 ] 
             },
             { 
-                day: 7, date: "5/16 (五)", title: "收心回家 ✈️", location: "難波/KIX", weather: "晴朗，27°C/19°C", 
+                day: 7, date: "5/16 (五)", title: "收心回家 ✈️", location: "難波/KIX", 
                 events: [
                     { time: "09:30", description: "退房，行李可寄放飯店或拉至車站寄放", landmark: false },
                     { time: "10:00", description: "難波周邊找間咖啡廳享用悠閒早餐", landmark: false },
@@ -130,12 +123,32 @@
             },
         ];
 
-        // --- Gemini API Utilities for Exchange Rate and Landmark Info ---
+        // --- HARDCODED LANDMARK INFO (Fallback Descriptions) ---
+        const HARDCODED_INFO = {
+            "難波八阪神社": "巨大且震撼的獅子頭形狀的舞殿是神社的最大特色，據說能吞噬厄運並帶來勝利。",
+            "道頓堀": "大阪最著名的地標，以「食倒」文化聞名，Glico跑跑人招牌和各種誇張的立體招牌是必看亮點。",
+            "伏見稻荷大社": "以綿延不絕的朱紅色「千本鳥居」聞名，是京都代表性的景點之一，充滿神秘的宗教氛圍。",
+            "錦市場": "被譽為「京都的廚房」，擁有數百年歷史，販售各種新鮮海產、京野菜、漬物和獨特小吃。",
+            "清水寺": "京都最古老的寺院，著名的「清水舞台」由數百根木柱支撐，可俯瞰京都市景，是世界文化遺產。",
+            "星巴克京都二寧坂茶屋店": "全球首間榻榻米座位的星巴克，完美融合了傳統日式町家建築與現代咖啡文化。",
+            "天橋立": "日本三景之一，一個全長約3.6公里的沙洲，形狀看似一道連結天地的橋樑，適合從高處倒頭觀看。",
+            "伊根舟屋": "沿著海灣建造的獨特日式傳統建築，一樓是船庫，二樓是生活空間，被譽為「海之京都」。",
+            "神戶布引香草園": "位於山頂，是日本最大的香草園之一，可以搭乘纜車上山，眺望神戶市景與港口。",
+            "北野異人館街": "保留了明治時代外國人居住的西式建築群，風格獨特，充滿異國情調。",
+            "神戶港": "充滿現代感的港灣地區，以紅色地標神戶塔和 Mosaic 廣場聞名，是欣賞神戶百萬夜景的絕佳地點。",
+            "Grand Front Osaka": "梅田的大型複合式商業設施，包括無印良品全球旗艦店等，是購物和美食的集中地。",
+            "心齋橋": "大阪最繁華的購物街之一，聚集了藥妝店、時尚品牌和各種特色小店。",
+            "大阪和牛餐廳": "在大阪，您可以享用到頂級的黑毛和牛，如松阪牛或神戶牛，是肉食愛好者的天堂。",
+            "黑門市場": "被稱為「大阪人的廚房」，以新鮮的海鮮、河豚、和牛和各種在地小吃聞名。",
+            "千日前道具街": "專門販售廚房用品、餐具和食物模型的街道，是餐飲業者的天堂，也是購買伴手禮的好去處。",
+            "通天閣 新世界": "大阪的象徵性地標，位於充滿懷舊昭和風情的新世界地區，可以登上展望台俯瞰城市。",
+        };
         
-        // General Gemini API Caller with Google Search grounding
-        const callGeminiApi = async (prompt, systemInstruction) => {
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        // --- Gemini API Utilities for Landmark Info, Weather, and Exchange Rate ---
+        const callGeminiApi = async (prompt, systemInstruction, isExchangeRate = false) => {
+            const apiKey = ""; // API key is handled by the environment
+            const modelName = "gemini-2.5-flash-preview-09-2025";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }],
@@ -162,405 +175,246 @@
                     }
 
                     const result = await response.json();
-                    return result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'ERROR';
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+                    if (text) {
+                        if (isExchangeRate) {
+                            const match = text.match(/[\d.]+/);
+                            return match ? parseFloat(match[0]) : 'ERROR';
+                        }
+                        return text;
+                    }
+                    return 'ERROR';
 
                 } catch (error) {
-                    if (i === MAX_RETRIES - 1) {
-                        console.error("Gemini API call failed after multiple retries:", error);
-                        return "ERROR";
-                    }
+                    console.error("API call failed:", error);
+                    if (i === MAX_RETRIES - 1) return "ERROR";
                 }
             }
             return "ERROR";
         };
         
-        // Function to fetch Landmark information
-        const fetchLandmarkInfo = async (query) => {
-            const prompt = `以繁體中文，用一到兩句話簡述日本景點 ${query} 的特色。`;
-            const system = "你是一個旅遊嚮導。請根據景點名稱，提供簡潔、吸引人且適合旅遊手冊的景點介紹。只輸出簡介內容，不要加入任何標題或多餘的文字。";
-            return callGeminiApi(prompt, system);
-        };
-
-        // --- Hook for Local Storage Data Management ---
-        const useLocalExpenses = () => {
-            const [expenses, setExpenses] = useState(() => {
-                try {
-                    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-                    if (saved) {
-                        // 解析並確保 createdAt 是 Date 物件
-                        const parsed = JSON.parse(saved);
-                        return parsed.map(item => ({
-                            ...item,
-                            createdAt: new Date(item.createdAt) // 將時間戳字串轉回 Date 物件
-                        }));
-                    }
-                } catch (e) {
-                    console.error("Failed to load expenses from localStorage:", e);
-                }
-                return [];
-            });
-
-            // Effect to save data whenever 'expenses' state changes
-            useEffect(() => {
-                try {
-                    // 儲存時將 Date 物件轉為 ISO 字串
-                    const dataToSave = expenses.map(item => ({
-                        ...item,
-                        createdAt: item.createdAt.toISOString()
-                    }));
-                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
-                } catch (e) {
-                    console.error("Failed to save expenses to localStorage:", e);
-                    // 如果儲存失敗，可以考慮通知使用者 (例如: 瀏覽器儲存空間已滿)
-                }
-            }, [expenses]);
-            
-            // --- CRUD Operations for Local Storage ---
-            
-            const addExpense = (item) => {
-                const newExpense = {
-                    id: crypto.randomUUID(), // 使用 UUID 作為唯一識別碼
-                    ...item,
-                    jpy: parseFloat(item.jpy),
-                    isDone: false,
-                    createdAt: new Date(),
-                };
-                setExpenses(prev => [newExpense, ...prev].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()));
-            };
-
-            const toggleDone = (id, isDone) => {
-                setExpenses(prev => prev.map(item => 
-                    item.id === id ? { ...item, isDone: isDone } : item
-                ));
-            };
-
-            const deleteItem = (id) => {
-                setExpenses(prev => prev.filter(item => item.id !== id));
-            };
-
-            return { expenses, addExpense, toggleDone, deleteItem };
-        };
-
         // Component: LandmarkInfo (景點介紹查詢元件)
         const LandmarkInfo = ({ query }) => {
-            const [info, setInfo] = useState(null);
+            const [info, setInfo] = useState(HARDCODED_INFO[query] || "無簡短描述。");
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState(null);
+            const [queried, setQueried] = useState(false);
 
-            useEffect(() => {
-                if (!query) return;
+            const fetchLandmarkInfo = async (query) => {
+                const prompt = `以繁體中文，用一到兩句話簡述日本景點 ${query} 的特色。`;
+                const system = "你是一個旅遊嚮導。請根據景點名稱，提供簡潔、吸引人且適合旅遊手冊的景點介紹。只輸出簡介內容，不要加入任何標題或多餘的文字。";
+                return callGeminiApi(prompt, system);
+            };
 
-                const getInfo = async () => {
-                    setLoading(true);
-                    setError(null);
-                    setInfo(null);
-                    const result = await fetchLandmarkInfo(query);
-                    if (result && result !== 'ERROR') {
-                        setInfo(result);
-                    } else {
-                        setError("無法找到景點介紹或網路錯誤。");
-                    }
-                    setLoading(false);
-                };
-                getInfo();
+            const getInfo = useCallback(async () => {
+                setLoading(true);
+                setError(null);
+                setInfo(null);
+                const result = await fetchLandmarkInfo(query);
+                if (result && result !== 'ERROR') {
+                    setInfo(result);
+                    setQueried(true);
+                } else {
+                    setError("無法連線至查詢服務，請檢查網路。");
+                    setInfo(HARDCODED_INFO[query] || "無簡短描述。");
+                }
+                setLoading(false);
             }, [query]);
 
-            if (loading) {
-                return (
-                    <div className="flex items-center text-sm text-rose-500 mt-2">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        正在查詢景點特色...
-                    </div>
-                );
-            }
-            
-            if (error) {
-                return <p className="text-xs text-red-500 mt-2">*{error}</p>;
-            }
-
-            if (info) {
-                return (
-                    <div className="mt-3 pt-3 border-t border-rose-100">
-                        <p className="text-xs font-bold text-rose-600 mb-1">【景點特色】</p>
+            return (
+                <div className="mt-3 pt-3 border-t border-rose-100">
+                    <p className="text-xs font-bold text-rose-600 mb-1">【景點特色】</p>
+                    
+                    {loading ? (
+                        <div className="flex items-center text-sm text-rose-500">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            正在查詢景點特色...
+                        </div>
+                    ) : (
                         <p className="text-sm text-gray-700 leading-relaxed">{info}</p>
-                    </div>
-                );
-            }
+                    )}
 
-            return null;
+                    {error && <p className="text-xs text-red-500 mt-2">*{error}</p>}
+                    
+                    {!queried && !loading && (
+                        <button 
+                            onClick={getInfo}
+                            className="mt-3 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition duration-150 border-b border-dashed border-indigo-200"
+                        >
+                            嘗試即時查詢最新特色 🌐
+                        </button>
+                    )}
+                </div>
+            );
         };
-        
+
         // Component: EventCard (行程卡片)
         const EventCard = ({ event }) => (
             <div className="bg-white p-4 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-[1.01] border border-rose-100">
                 <p className="text-sm font-semibold text-gray-800">{event.description}</p>
-                {/* 只有當 event.landmark 為 true 且有 query 時才渲染景點介紹 */}
                 {event.landmark && event.query && <LandmarkInfo query={event.query} />}
             </div>
         );
 
-        // Component: ExpenseTracker (預算追蹤器)
-        const ExpenseTracker = ({ rate, rateError, refreshRate, rateLoading }) => {
-            const { expenses, addExpense, toggleDone, deleteItem } = useLocalExpenses();
+        // Component: UtilityCard (即時資訊卡片)
+        const UtilityCard = () => {
+            // Define cities for selection
+            const CITIES = [
+                { name: '大阪難波', label: '大阪難波' },
+                { name: '京都', label: '京都' },
+                { name: '神戶', label: '神戶' },
+            ];
+
+            // State for selected city, default to the main base
+            const [selectedCity, setSelectedCity] = useState(CITIES[0].name); 
+
+            // State for Weather
+            const [weather, setWeather] = useState("點擊城市按鈕查詢天氣");
+            const [weatherLoading, setWeatherLoading] = useState(false);
             
-            const [itemName, setItemName] = useState('');
-            const [jpyValue, setJpyValue] = useState('');
-            const [payerName, setPayerName] = useState('我');
-            
-            const totalJPY = useMemo(() => expenses.reduce((sum, item) => sum + item.jpy, 0), [expenses]);
-            const totalTWD = totalJPY * rate;
-            
-            // --- CRUD Operations ---
-            const handleAddItem = (e) => {
-                e.preventDefault();
-                const name = itemName.trim();
-                const payer = payerName.trim() || '未指定';
-                const jpy = parseFloat(jpyValue);
-
-                if (name === '' || isNaN(jpy) || jpy <= 0) return;
-                
-                addExpense({ name, jpy, payerName: payer });
-
-                setItemName('');
-                setJpyValue('');
-                setPayerName('我');
-            };
-            
-            const handleToggleDone = (id, isDone) => {
-                toggleDone(id, isDone);
-            };
-
-            const handleDeleteItem = (id) => {
-                deleteItem(id);
-            };
-            
-            // --- Export to CSV Function ---
-            const exportToCSV = () => {
-                if (expenses.length === 0) {
-                    console.log('清單中沒有花費項目可供匯出！'); // Log instead of alert
-                    return;
-                }
-
-                const headers = ["日期", "項目名稱", "支付人員", "日幣金額 (JPY)", "台幣金額 (TWD)", "是否完成", "建立時間"];
-                
-                // Function to escape string content for CSV
-                const escape = (str) => `"${String(str).replace(/"/g, '""')}"`;
-
-                const csvContent = expenses.map(item => {
-                    const twd = (item.jpy * rate).toFixed(2);
-                    const dateStr = new Date(item.createdAt).toLocaleDateString('zh-TW');
-                    const completed = item.isDone ? "是" : "否";
-                    
-                    return [
-                        escape(dateStr), 
-                        escape(item.name), 
-                        escape(item.payerName || '未指定'), 
-                        item.jpy, 
-                        twd, 
-                        completed,
-                        escape(new Date(item.createdAt).toLocaleString('zh-TW'))
-                    ].join(',');
-                }).join('\n');
-
-                // Add UTF-8 BOM for Chinese characters compatibility in Excel
-                const fullCSV = "\uFEFF" + headers.join(',') + '\n' + csvContent;
-
-                const blob = new Blob([fullCSV], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `關西姐妹淘花費明細_${new Date().toISOString().slice(0, 10)}.csv`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            };
-
-
-            return (
-                <div id="expense-tracker" className="bg-white p-6 rounded-3xl shadow-2xl mb-8">
-                    <h2 className="text-2xl font-bold text-rose-600 mb-4 flex items-center">
-                        <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3 .895-3 2 1.343 2 3 2m0-8V4m0 12v4m-6-3h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                        旅費記帳本 (共 {expenses.length} 筆)
-                    </h2>
-                    
-                    {/* Local Storage Warning */}
-                    <div className="bg-yellow-50 p-4 rounded-xl mb-4 border border-yellow-200">
-                        <p className="text-sm font-semibold text-yellow-800 flex items-center">
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            本資料儲存在**您的瀏覽器中** (Local Storage)。
-                        </p>
-                        <p className="text-xs text-yellow-700 mt-1">
-                            ⚠️ 換電腦或清空瀏覽器快取會遺失資料。若要同步到雲端，請聯繫平台管理員設定 Firebase。
-                        </p>
-                    </div>
-
-                    {/* Exchange Rate Status (即時匯率功能區) */}
-                    <div className="bg-indigo-50 p-4 rounded-xl mb-4 border border-indigo-200">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-indigo-600">即時匯率 (JPY → TWD)</h3>
-                            <button 
-                                onClick={refreshRate} 
-                                disabled={rateLoading}
-                                className={`text-sm px-3 py-1 rounded-full transition-colors ${rateLoading ? 'bg-gray-400' : 'bg-indigo-500 hover:bg-indigo-600'} text-white`}>
-                                {rateLoading ? '更新中...' : '刷新匯率'}
-                            </button>
-                        </div>
-                        <p className="text-2xl font-mono mt-2">
-                            1 JPY = <span className="text-green-600 font-extrabold">NT$ {rate.toFixed(4)}</span>
-                        </p>
-                        <p className={`text-xs mt-1 ${rateError ? 'text-red-500' : 'text-gray-500'}`}>
-                            {rateError || `匯率已更新至 ${new Date().toLocaleTimeString('zh-TW')}`}
-                        </p>
-                    </div>
-
-                    {/* Total Display */}
-                    <div className="bg-pink-500 text-white p-4 rounded-xl mb-6 shadow-inner">
-                        <p className="text-md font-semibold mb-1">總花費概估</p>
-                        <div className="flex justify-between items-baseline">
-                            <span className="text-4xl font-extrabold text-yellow-300">
-                                NT$ {(totalTWD).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                            </span>
-                            <span className="text-lg font-bold">
-                                ¥ {totalJPY.toLocaleString('en-US')}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Add Item Form */}
-                    <form onSubmit={handleAddItem} className="space-y-3 p-4 bg-rose-50 rounded-xl mb-6 shadow-md border border-rose-200">
-                        <h3 className="text-lg font-bold text-gray-700">新增花費項目</h3>
-                        <input
-                            type="text"
-                            placeholder="項目名稱 (e.g. 和牛大餐)"
-                            className="w-full p-3 border border-rose-300 rounded-lg focus:ring-rose-500 focus:border-rose-500 text-sm"
-                            value={itemName}
-                            onChange={(e) => setItemName(e.target.value)}
-                            required
-                        />
-                        <div className="grid grid-cols-2 gap-3">
-                            <input
-                                type="text"
-                                placeholder="支付人員 (e.g. 雅雅)"
-                                className="w-full p-3 border border-rose-300 rounded-lg focus:ring-rose-500 focus:border-rose-500 text-sm"
-                                value={payerName}
-                                onChange={(e) => setPayerName(e.target.value)}
-                                required
-                            />
-                            <input
-                                type="number"
-                                placeholder="日幣金額 (JPY)"
-                                className="w-full p-3 border border-rose-300 rounded-lg focus:ring-rose-500 focus:border-rose-500 text-sm"
-                                value={jpyValue}
-                                onChange={(e) => setJpyValue(e.target.value)}
-                                min="1"
-                                required
-                            />
-                        </div>
-                        <button type="submit" className="w-full p-3 bg-rose-500 text-white font-semibold rounded-lg shadow-md hover:bg-rose-600 transition duration-150 transform hover:scale-[1.01]">
-                            <span className="flex items-center justify-center">
-                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                加入花費
-                            </span>
-                        </button>
-                    </form>
-                    
-                    {/* Export Button */}
-                    <div className="flex justify-end mb-4">
-                        <button 
-                            onClick={exportToCSV}
-                            className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-150 transform hover:scale-[1.01] text-sm">
-                            <span className="flex items-center">
-                                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                匯出 Excel (CSV)
-                            </span>
-                        </button>
-                    </div>
-
-                    {/* Expense List */}
-                    <ul className="space-y-3 hide-scrollbar max-h-96 overflow-y-auto">
-                        {expenses.length === 0 ? (
-                            <p className="text-gray-500 p-4 text-center bg-gray-50 rounded-lg shadow-inner">清單是空的！新增第一筆花費吧！</p>
-                        ) : (
-                            expenses.map(item => (
-                                <li key={item.id} className={`flex items-center justify-between p-3 rounded-xl shadow-sm transition-all border ${item.isDone ? 'bg-gray-100 opacity-70 border-gray-300 line-through' : 'bg-white border-rose-100 hover:shadow-md'}`}>
-                                    <div className="flex items-center flex-grow">
-                                        <input
-                                            type="checkbox"
-                                            className="toggle-checkbox h-5 w-5 text-rose-600 rounded border-gray-300 focus:ring-rose-500 cursor-pointer"
-                                            checked={item.isDone}
-                                            onChange={(e) => handleToggleDone(item.id, e.target.checked)}
-                                        />
-                                        <div className="ml-3 flex-1">
-                                            <p className={`text-base font-semibold text-gray-800 ${item.isDone ? 'text-gray-500' : ''}`}>{item.name}</p>
-                                            <p className="text-xs text-gray-500">
-                                                支付者: <span className="font-bold text-indigo-500">{item.payerName}</span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right ml-4 flex-shrink-0">
-                                        <p className="text-lg font-extrabold text-red-600">
-                                            NT$ {(item.jpy * rate).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                                        </p>
-                                        <p className="text-xs font-mono text-gray-500">
-                                            ¥ {item.jpy.toLocaleString('en-US')}
-                                        </p>
-                                    </div>
-                                    <button 
-                                        onClick={() => handleDeleteItem(item.id)} 
-                                        className="ml-3 p-1 text-red-500 hover:bg-red-100 rounded-full transition-colors"
-                                        aria-label="刪除項目">
-                                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm6 3a1 1 0 100 2h-4a1 1 0 100-2h4z" clipRule="evenodd"></path></svg>
-                                    </button>
-                                </li>
-                            ))
-                        )}
-                    </ul>
-                </div>
-            );
-        };
-        
-        // Component: App (Main Layout)
-        const App = () => {
-            const [activeDay, setActiveDay] = useState(tripData[0].day);
-            
-            // State for Exchange Rate
-            const [exchangeRate, setExchangeRate] = useState(DEFAULT_JPY_TO_TWD_RATE);
-            const [rateError, setRateError] = useState(null);
+            // State for Exchange Rate (Rate is TWD per 1 JPY)
+            const [rate, setRate] = useState(null); 
+            const [jpyInput, setJpyInput] = useState(''); 
             const [rateLoading, setRateLoading] = useState(false);
-
-            const findRate = async () => {
-                const ratePrompt = "Get the current JPY to TWD exchange rate.";
-                const rateSystem = "You are a specialized currency assistant. Your only job is to find the JPY to TWD exchange rate and output only the numerical value of the rate, with no text explanation, no currency symbols, and no formatting (e.g., 0.2154). If you cannot find a current rate, respond with 'ERROR'.";
-
-                const rateText = await callGeminiApi(ratePrompt, rateSystem);
-                const numericalRate = parseFloat(rateText);
-
-                // Basic validation for rate
-                if (!isNaN(numericalRate) && numericalRate > 0.05 && numericalRate < 0.5) { 
-                    setExchangeRate(numericalRate);
-                    setRateError(null);
-                } else {
-                    setExchangeRate(DEFAULT_JPY_TO_TWD_RATE);
-                    setRateError(`無法取得最新匯率，使用預設值 ${DEFAULT_JPY_TO_TWD_RATE}`);
-                }
-            };
             
-            const refreshRate = useCallback(async () => {
+            // --- Fetch Weather ---
+            const fetchWeather = useCallback(async (city) => {
+                setWeatherLoading(true);
+                // Dynamically update the prompt with the selected city
+                const prompt = `現在${city}的天氣狀況、溫度和體感，請用一句話簡述。例如：『目前晴朗，溫度 25°C，體感舒適。』`;
+                const system = "你是一個即時天氣播報員，根據最新的網路查詢結果，以繁體中文簡潔地回答。只輸出描述內容。";
+                
+                // Clear weather display while fetching new data
+                setWeather('查詢中...'); 
+
+                const result = await callGeminiApi(prompt, system);
+                setWeather(result === 'ERROR' ? '無法取得即時天氣' : result);
+                setWeatherLoading(false);
+            }, []);
+
+            // Handle city change and trigger weather fetch
+            const handleCityChange = (city) => {
+                setSelectedCity(city);
+                fetchWeather(city);
+            };
+
+            // --- Fetch Exchange Rate (JPY to TWD) ---
+            const fetchExchangeRate = useCallback(async () => {
                 setRateLoading(true);
-                await findRate();
+                // Prompt to get JPY to TWD rate (TWD per 1 JPY)
+                const prompt = "日圓 (JPY) 兌換台灣新台幣 (TWD) 的即時匯率是多少？（例如：1 JPY = X TWD）。請只輸出數字 X，精確到小數點後四位。";
+                const system = "你是一個金融數據機器人，請提供最新的 JPY 兌換 TWD 的數字。";
+                const result = await callGeminiApi(prompt, system, true); // true for isExchangeRate
+                
+                if (typeof result === 'number') {
+                    setRate(result); // result is TWD per 1 JPY
+                } else {
+                    setRate(null);
+                    console.error("Failed to parse exchange rate:", result);
+                }
                 setRateLoading(false);
             }, []);
 
             useEffect(() => {
-                refreshRate();
-            }, [refreshRate]);
+                // Initial fetch for utilities (default to selectedCity)
+                fetchWeather(selectedCity);
+                fetchExchangeRate();
+            }, [fetchWeather, fetchExchangeRate]);
 
+            // Calculation: TWD Output = JPY Input * Rate (TWD/JPY)
+            const twdOutput = rate && jpyInput ? (parseFloat(jpyInput) * rate).toFixed(2) : '0.00';
+            const displayRate = rate ? rate.toFixed(4) : 'N/A'; // Use 4 decimal places for precision
+
+            // --- Utility UI ---
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* 1. Weather Card (Multi-city selector) */}
+                    <div className="bg-white p-5 rounded-3xl shadow-lg border-2 border-indigo-200">
+                        <div className="flex items-center text-indigo-600 mb-2">
+                            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.975 4 4 0 10-7.75 1.764L7 15h2.529a4 4 0 01-.5-1.928M12 11V6M9 9l3-3 3 3"></path></svg>
+                            <h3 className="font-bold text-lg">即時天氣 ({selectedCity})</h3> 
+                        </div>
+
+                        {/* City Selection Buttons */}
+                        <div className="flex space-x-2 mb-3 overflow-x-auto hide-scrollbar">
+                            {CITIES.map((city) => (
+                                <button
+                                    key={city.name}
+                                    onClick={() => handleCityChange(city.name)}
+                                    // Dynamic styling based on selection
+                                    className={`flex-shrink-0 text-xs px-3 py-1 rounded-full font-medium transition ${
+                                        selectedCity === city.name
+                                            ? 'bg-indigo-600 text-white shadow-md'
+                                            : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                                    }`}
+                                    disabled={weatherLoading} // Disable while loading
+                                >
+                                    {city.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Weather Display */}
+                        {weatherLoading ? (
+                            <div className="text-sm text-indigo-400 flex items-center">
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                查詢中...
+                            </div>
+                        ) : (
+                            <p className="text-gray-700 font-medium text-sm">{weather}</p>
+                        )}
+                        <p className="text-xs text-gray-400 mt-2">*{new Date().toLocaleTimeString('zh-TW')} 資料</p>
+                    </div>
+
+                    {/* 2. Exchange Rate Card (JPY to TWD) */}
+                    <div className="bg-white p-5 rounded-3xl shadow-lg border-2 border-pink-200">
+                        <div className="flex items-center text-pink-600 mb-2">
+                            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V8m0 8v-8"></path></svg>
+                            <h3 className="font-bold text-lg">日圓匯率換算 (JPY ➝ TWD)</h3> 
+                        </div>
+                        {rateLoading ? (
+                            <div className="text-sm text-pink-400 flex items-center">
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                查詢中...
+                            </div>
+                        ) : rate ? (
+                            <div className="mt-2">
+                                <p className="text-sm font-semibold text-gray-600 mb-2">
+                                    即時匯率: 1 JPY = {displayRate} TWD
+                                </p>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="number"
+                                        value={jpyInput}
+                                        onChange={(e) => setJpyInput(e.target.value)}
+                                        placeholder="輸入日幣金額 (¥)..." 
+                                        className="w-1/2 p-2 border border-pink-300 rounded-lg text-sm focus:ring-pink-500 focus:border-pink-500 transition"
+                                    />
+                                    <span className="text-lg font-bold text-gray-800">=</span>
+                                    <div className="w-1/2 p-2 bg-pink-50 rounded-lg text-sm font-extrabold text-pink-700 text-right shadow-inner">
+                                        NT$ {twdOutput} 
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-red-500 text-sm">無法取得匯率資訊</p>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Component: App (Main Layout)
+        const App = () => {
+            const [activeDay, setActiveDay] = useState(tripData[0].day);
 
             // Find the active day's data
             const currentDay = tripData.find(d => d.day === activeDay);
 
             return (
                 <div className="max-w-xl mx-auto min-h-screen pb-4">
-                    {/* Header */}
+                    {/* Header (Sticky for navigation) */}
                     <header className="py-6 px-4 bg-white shadow-lg sticky top-0 z-20 rounded-b-3xl mb-4">
                         <h1 className="text-3xl font-extrabold text-pink-700">
                             🌸 關西姊妹淘七日悠閒之旅
@@ -572,6 +426,9 @@
 
                     <main className="px-4 space-y-8">
                         
+                        {/* Utility Card (Weather & Exchange Rate) */}
+                        <UtilityCard />
+
                         {/* Trip Introduction */}
                         <div className="bg-white p-6 rounded-3xl shadow-2xl border border-pink-200">
                             <h2 className="text-2xl font-bold text-pink-600 mb-3 flex items-center">
@@ -582,7 +439,7 @@
                             <p className="mt-3 text-xs text-gray-500 italic">住宿：全程連住東橫INN 大阪難波西（或難波周邊飯店）</p>
                         </div>
 
-                        {/* Day Tabs */}
+                        {/* Day Tabs (Sticky for easy switching) */}
                         <div className="hide-scrollbar overflow-x-auto whitespace-nowrap py-3 sticky top-24 bg-rose-50 z-10 -mx-4 px-4 shadow-inner">
                             {tripData.map(day => (
                                 <button
@@ -606,12 +463,6 @@
                                 {currentDay.date} @ {currentDay.location}
                             </p>
                             
-                            {/* Weather Card */}
-                            <div className="flex items-center bg-indigo-50 p-3 rounded-xl mb-6 shadow-inner border border-indigo-200">
-                                <svg className="w-6 h-6 text-indigo-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                                <span className="text-sm font-medium text-indigo-800">天氣預報 (模擬): {currentDay.weather}</span>
-                            </div>
-
                             {/* Timeline */}
                             <div className="relative border-l-2 border-rose-100 ml-3 space-y-8 my-6">
                                 {currentDay.events.map((event, idx) => (
@@ -620,25 +471,16 @@
                                         <span className="inline-block px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-xs font-bold mb-1 shadow-sm">
                                             {event.time}
                                         </span>
-                                        {/* EventCard 包含了景點介紹的子元件 LandmarkInfo */}
                                         <EventCard event={event} />
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Expense Tracker Section */}
-                        <ExpenseTracker 
-                            rate={exchangeRate} 
-                            rateError={rateError} 
-                            refreshRate={refreshRate}
-                            rateLoading={rateLoading}
-                        />
-
                         {/* Footer */}
                         <div className="text-center text-rose-300 text-xs pb-10">
                             Made with ❤️ for Sisters Trip 2026
-                            <br/>模擬天氣數據僅供參考，景點資訊與即時匯率由網路查詢提供。
+                            <br/>景點介紹已內建，天氣與匯率為即時網路查詢結果。
                         </div>
 
                     </main>
