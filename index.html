@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>關西姊妹淘七日悠閒之旅 - 匯率天氣貼心版</title>
+    <title>關西姊妹淘七日悠閒之旅 - 匯率版</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -193,7 +193,8 @@
             </div>
         );
 
-        // --- Gemini API Fetcher (Supports Text and Structured JSON) ---
+        // --- Gemini API Fetcher ---
+
         const useGeminiApi = () => {
              // Core Fetching function for Gemini API (Supports text and structured JSON)
             const geminiFetch = useCallback(async (userQuery, systemPrompt, customConfig = {}) => {
@@ -201,10 +202,10 @@
                 const model = 'gemini-2.5-flash-preview-09-2025';
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
                 
-                // Configuration for the LLM call
+                // Configuration for the LLM call - Keeping Google Search for currency grounding
                 const payload = {
                     contents: [{ parts: [{ text: userQuery }] }],
-                    tools: [{ "google_search": {} }],
+                    tools: [{ "google_search": {} }], 
                     systemInstruction: { parts: [{ text: systemPrompt }] },
                     ...(Object.keys(customConfig).length > 0 && { generationConfig: customConfig }),
                 };
@@ -245,7 +246,6 @@
                                     return { content: parsedContent, sources, error: false };
                                 } catch (e) {
                                     console.error("JSON Parsing Error:", e, rawText);
-                                    // If JSON fails, treat it as an error
                                     return { content: null, sources: [], error: true, errorMessage: "API 回應非標準 JSON 格式。" };
                                 }
                             }
@@ -346,9 +346,9 @@
             const convertedTwd = useMemo(() => {
                 const amount = parseFloat(jpyAmount);
                 if (rate && !isNaN(amount) && amount >= 0) {
-                    return (amount * rate).toFixed(2);
+                    return (amount * rate).toFixed(4); // 保持四位小數，讓使用者自己取捨
                 }
-                return '0.00';
+                return '0.0000';
             }, [jpyAmount, rate]);
 
             return (
@@ -411,169 +411,6 @@
         };
         // --- End Currency Converter Component ---
 
-        // --- Weather Fetcher Component ---
-
-        const CITIES = ['大阪', '京都', '神戶'];
-
-        /** * 輔助函數：根據天氣狀況字串返回一個 Emoji 圖標。
-         */
-        const getEmoji = (condition) => {
-            if (!condition) return '❓';
-            const c = condition.toLowerCase();
-            if (c.includes('rain') || c.includes('雨')) return '🌧️';
-            if (c.includes('cloudy') || c.includes('陰') || c.includes('多雲') || c.includes('多云')) return '☁️';
-            if (c.includes('sun') || c.includes('晴') || c.includes('clear')) return '☀️';
-            if (c.includes('snow') || c.includes('雪')) return '❄️';
-            if (c.includes('storm') || c.includes('雷') || c.includes('暴')) return '⛈️';
-            if (c.includes('mist') || c.includes('fog') || c.includes('霧')) return '🌫️';
-            return '🌡️';
-        }
-
-
-        const WeatherFetcher = ({ geminiFetch }) => {
-            const [selectedCity, setSelectedCity] = useState('大阪');
-            const [weatherData, setWeatherData] = useState(null);
-            const [isLoading, setIsLoading] = useState(false);
-            const [apiError, setApiError] = useState(null);
-            const [lastUpdated, setLastUpdated] = useState(null);
-
-            /** * 更穩定的天氣查詢函數：要求純文字輸出並手動解析 (4行資訊)。
-             */
-            const fetchWeather = useCallback(async (city) => {
-                // System Prompt：要求 4 行資訊，第 4 行為貼心建議。
-                const systemPrompt = "You are a friendly travel assistant providing timely advice. For the current weather in the requested city, provide ONLY four pieces of information, each on a new line: 1. The city name (in Chinese/Japanese). 2. The temperature (e.g., 25°C). 3. The weather condition (e.g., Sunny, Cloudy, 晴時多雲). 4. A single, conversational sentence of travel advice for a tourist (e.g., '今天晴空萬里，很適合在戶外逛街喔！' or '可能會下點雨，記得帶雨傘和輕便外套。'). Do NOT include any labels (like '1. City').";
-                const userQuery = `Current weather in ${city}, Japan today.`;
-                
-                const result = await geminiFetch(userQuery, systemPrompt);
-
-                if (result.error) {
-                    return { error: result.errorMessage };
-                }
-
-                // 將純文字結果按換行符分割，並清理空格
-                const lines = result.content.trim().split('\n').map(line => line.trim()).filter(line => line.length > 0);
-
-                if (lines.length >= 4) {
-                    // lines[0] = City Name
-                    // lines[1] = Temperature
-                    // lines[2] = Condition
-                    // lines[3] = Advice (New!)
-                    const icon = getEmoji(lines[2]); // 轉換條件為 Emoji
-                    const data = {
-                        city: lines[0],
-                        temperature: lines[1],
-                        condition: lines[2],
-                        advice: lines[3], // 貼心建議
-                        icon: icon
-                    };
-                    return { data: data, error: null };
-                }
-                
-                // 如果格式不符預期
-                return { error: `無法解析天氣數據，格式不正確。API回應: "${result.content.substring(0, 50)}..."` };
-            }, [geminiFetch]);
-
-
-            const handleFetchWeather = useCallback(async (city) => {
-                setApiError(null);
-                setIsLoading(true);
-                setWeatherData(null); // Clear previous data while loading
-
-                const result = await fetchWeather(city);
-                
-                if (result.error) {
-                    setApiError(result.error);
-                } else if (result.data) {
-                    setWeatherData(result.data);
-                    setLastUpdated(new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }));
-                }
-                
-                setIsLoading(false);
-            }, [fetchWeather]);
-
-            // Fetch weather when selectedCity changes (and on mount since selectedCity defaults to '大阪')
-            useEffect(() => {
-                if (geminiFetch) {
-                    handleFetchWeather(selectedCity);
-                }
-            }, [selectedCity, handleFetchWeather, geminiFetch]);
-
-
-            return (
-                <div className="p-4 mb-6 bg-white rounded-2xl shadow-xl border border-blue-300 animate-fade-in">
-                    <h2 className="text-lg font-bold text-blue-600 flex items-center mb-3 border-b pb-2">
-                        <span className="text-xl mr-2">🌤️</span> 關西三城即時天氣
-                    </h2>
-
-                    {/* City Selector */}
-                    <div className="flex justify-between space-x-2 mb-4">
-                        {CITIES.map(city => (
-                            <button
-                                key={city}
-                                onClick={() => setSelectedCity(city)}
-                                disabled={isLoading}
-                                className={`
-                                    w-1/3 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${isLoading ? 'loading-dim' : ''}
-                                    ${selectedCity === city
-                                        ? 'bg-blue-500 text-white shadow-md'
-                                        : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                                    }
-                                `}
-                            >
-                                {city}
-                            </button>
-                        ))}
-                    </div>
-
-                    {apiError && (
-                        <p className="text-red-500 text-center mb-3 p-2 text-sm bg-red-50 rounded-lg">
-                            ❌ {apiError}
-                        </p>
-                    )}
-
-                    {/* Weather Display */}
-                    <div className={`p-4 rounded-lg bg-blue-50/50 shadow-inner min-h-[140px] flex flex-col justify-center transition-opacity ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
-                        {isLoading ? (
-                            <div className="text-blue-500 flex items-center justify-center py-4">
-                                <span className="animate-spin mr-2">🌀</span> 正在查詢 {selectedCity} 貼心天氣資訊...
-                            </div>
-                        ) : weatherData ? (
-                            <div className="space-y-3">
-                                {/* 數據區 */}
-                                <div className="flex justify-between items-center w-full">
-                                    <div className="text-6xl">{weatherData.icon || '❓'}</div>
-                                    <div className="text-right">
-                                        <p className="text-3xl font-bold text-gray-800 mb-0.5">{weatherData.temperature || 'N/A'}</p>
-                                        <p className="text-lg font-medium text-gray-600">{weatherData.condition || '無法取得'}</p>
-                                    </div>
-                                </div>
-                                {/* 貼心建議區 (New!) */}
-                                <div className="p-2 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg shadow-sm">
-                                    <p className="text-sm font-semibold text-gray-800 flex items-center">
-                                        <span className="mr-2 text-yellow-600">💡</span>
-                                        {weatherData.advice || '目前沒有貼心建議。'}
-                                    </p>
-                                </div>
-                            </div>
-                        ) : (
-                            !apiError && <div className="text-gray-400 text-center py-4">請選擇城市以查看貼心天氣資訊</div>
-                        )}
-                    </div>
-                     {/* Update Time & Refresh */}
-                     <div className="text-xs text-gray-400 text-right mt-2">
-                        {weatherData && lastUpdated && `上次更新: ${lastUpdated}`}
-                        <button 
-                            onClick={() => handleFetchWeather(selectedCity)} 
-                            disabled={isLoading}
-                            className={`ml-1 text-blue-500 hover:text-blue-700 transition-colors ${isLoading ? 'opacity-50' : ''}`}
-                            title="重新整理天氣"
-                        >
-                            {isLoading ? <span className="text-xs animate-spin">🌀</span> : '🔄'}
-                        </button>
-                    </div>
-                </div>
-            );
-        };
 
         // --- Main App Component ---
 
@@ -585,7 +422,7 @@
 
             return (
                 <div className="min-h-screen">
-                    <Header title="關西姊妹淘七日悠閒之旅 (匯率天氣貼心版)" />
+                    <Header title="關西姊妹淘七日悠閒之旅 (匯率專注版)" />
 
                     <DaySelector 
                         days={initialItinerary} 
@@ -595,17 +432,12 @@
 
                     <main className="p-4 max-w-xl mx-auto">
                         
-                        {/* 1. Currency Converter */}
+                        {/* 1. Currency Converter (Focus Element) */}
                         <CurrencyConverter 
                             geminiFetch={geminiFetch} 
                         />
-
-                        {/* 2. Weather Fetcher (Now with personalized advice) */}
-                        <WeatherFetcher
-                            geminiFetch={geminiFetch}
-                        />
                         
-                        {/* 3. Itinerary Details */}
+                        {/* 2. Itinerary Details */}
                         <div className="bg-white p-4 rounded-2xl shadow-xl mb-6 animate-fade-in">
                             <h2 className="text-2xl font-bold text-rose-700 mb-2">
                                 Day {currentDay.day}: {currentDay.theme}
