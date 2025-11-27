@@ -17,15 +17,6 @@
     
     <!-- Google Fonts: 圓體字讓行程看起來更可愛 -->
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
-
-    <!-- Firebase SDK Imports -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, query, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // Export Firebase functions to the global window object for Babel to access in the JSX script block
-        window.firebase = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, getFirestore, doc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, query, Timestamp };
-    </script>
     
     <style>
         body {
@@ -46,6 +37,11 @@
         .fade-in {
             animation: fade-in 0.5s ease-out;
         }
+        /* Custom Checkbox Style */
+        .toggle-checkbox:checked {
+            border-color: transparent;
+            background-color: #f43f5e; /* Rose-500 */
+        }
     </style>
 </head>
 <body>
@@ -56,17 +52,9 @@
 
         // --- Global Config and Utilities ---
         
-        // Firebase Global Variables (Provided by environment)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
+        const LOCAL_STORAGE_KEY = 'kansai_sisters_trip_expenses';
         const DEFAULT_JPY_TO_TWD_RATE = 0.22;
         const MAX_RETRIES = 3;
-        const COLLECTION_NAME = 'kansai_sisters_trip';
-
-        // Initialize Firebase instances
-        let appInstance, dbInstance, authInstance;
 
         // --- FINALIZED TRIP DATA ---
         const TRIP_SUMMARY = "這是一份為你們量身打造、最終定案的【關西姊妹淘七日悠閒之旅 (2026/5/10-5/16)】行程總表。全程連住難波，結合了天橋立跟團的輕鬆、和牛大餐的美味，以及無印良品旗艦店的購物樂趣。這趟旅程主打悠閒不趕路，讓姐妹們能盡情享受京阪神的優雅風情。";
@@ -193,92 +181,64 @@
             return callGeminiApi(prompt, system);
         };
 
-        // --- Hook for Firebase Init and Auth ---
-        const useAuthAndFirebase = () => {
-            const [userId, setUserId] = useState(null);
-            const [isAuthReady, setIsAuthReady] = useState(false);
-            const [firebaseError, setFirebaseError] = useState(null);
-
-            useEffect(() => {
-                if (Object.keys(firebaseConfig).length === 0) {
-                    setFirebaseError("Firebase 配置缺失，資料無法儲存。");
-                    setIsAuthReady(true);
-                    return;
-                }
-
+        // --- Hook for Local Storage Data Management ---
+        const useLocalExpenses = () => {
+            const [expenses, setExpenses] = useState(() => {
                 try {
-                    appInstance = window.firebase.initializeApp(firebaseConfig);
-                    dbInstance = window.firebase.getFirestore(appInstance);
-                    authInstance = window.firebase.getAuth(appInstance);
+                    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    if (saved) {
+                        // 解析並確保 createdAt 是 Date 物件
+                        const parsed = JSON.parse(saved);
+                        return parsed.map(item => ({
+                            ...item,
+                            createdAt: new Date(item.createdAt) // 將時間戳字串轉回 Date 物件
+                        }));
+                    }
                 } catch (e) {
-                    console.error("Firebase initialization failed:", e);
-                    setFirebaseError(`Firebase 初始化失敗: ${e.message}`);
-                    setIsAuthReady(true);
-                    return;
+                    console.error("Failed to load expenses from localStorage:", e);
                 }
+                return [];
+            });
 
-                // Sign in logic
-                const attemptSignIn = async () => {
-                    try {
-                        if (initialAuthToken) {
-                            await window.firebase.signInWithCustomToken(authInstance, initialAuthToken);
-                        } else {
-                            await window.firebase.signInAnonymously(authInstance);
-                        }
-                    } catch (e) {
-                        console.error("Firebase Sign-in Failed:", e);
-                        setFirebaseError("認證失敗，您將以匿名模式運作。");
-                    }
-                };
-                attemptSignIn();
-                
-                // Auth state listener
-                const unsubscribe = window.firebase.onAuthStateChanged(authInstance, (user) => {
-                    if (user) {
-                        setUserId(user.uid);
-                    } else {
-                        // Use a random UUID for anonymous/unauthenticated users
-                        setUserId(crypto.randomUUID());
-                    }
-                    setIsAuthReady(true);
-                });
-
-                return () => unsubscribe();
-            }, []);
-
-            return { userId, isAuthReady, firebaseError, db: dbInstance };
-        };
-
-        // Hook for Firestore Data
-        const useTripExpenses = (db, userId, isAuthReady) => {
-            const [expenses, setExpenses] = useState([]);
-
+            // Effect to save data whenever 'expenses' state changes
             useEffect(() => {
-                if (!db || !isAuthReady || !userId) return;
+                try {
+                    // 儲存時將 Date 物件轉為 ISO 字串
+                    const dataToSave = expenses.map(item => ({
+                        ...item,
+                        createdAt: item.createdAt.toISOString()
+                    }));
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
+                } catch (e) {
+                    console.error("Failed to save expenses to localStorage:", e);
+                    // 如果儲存失敗，可以考慮通知使用者 (例如: 瀏覽器儲存空間已滿)
+                }
+            }, [expenses]);
+            
+            // --- CRUD Operations for Local Storage ---
+            
+            const addExpense = (item) => {
+                const newExpense = {
+                    id: crypto.randomUUID(), // 使用 UUID 作為唯一識別碼
+                    ...item,
+                    jpy: parseFloat(item.jpy),
+                    isDone: false,
+                    createdAt: new Date(),
+                };
+                setExpenses(prev => [newExpense, ...prev].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()));
+            };
 
-                const COLLECTION_PATH = `/artifacts/${appId}/users/${userId}/${COLLECTION_NAME}`;
-                const userTripCollectionRef = window.firebase.collection(db, COLLECTION_PATH);
-                const q = window.firebase.query(userTripCollectionRef);
+            const toggleDone = (id, isDone) => {
+                setExpenses(prev => prev.map(item => 
+                    item.id === id ? { ...item, isDone: isDone } : item
+                ));
+            };
 
-                // Real-time listener
-                const unsubscribe = window.firebase.onSnapshot(q, (snapshot) => {
-                    const newExpenses = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data(),
-                        jpy: doc.data().jpy || 0,
-                        isDone: doc.data().isDone || false,
-                        payerName: doc.data().payerName || '未指定', 
-                        createdAt: doc.data().createdAt?.toDate() || new Date(),
-                    })).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-                    setExpenses(newExpenses);
-                }, (error) => {
-                    console.error("Error fetching trip data:", error);
-                });
+            const deleteItem = (id) => {
+                setExpenses(prev => prev.filter(item => item.id !== id));
+            };
 
-                return () => unsubscribe();
-            }, [db, userId, isAuthReady]);
-
-            return expenses;
+            return { expenses, addExpense, toggleDone, deleteItem };
         };
 
         // Component: LandmarkInfo (景點介紹查詢元件)
@@ -334,75 +294,50 @@
         const EventCard = ({ event }) => (
             <div className="bg-white p-4 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-[1.01] border border-rose-100">
                 <p className="text-sm font-semibold text-gray-800">{event.description}</p>
+                {/* 只有當 event.landmark 為 true 且有 query 時才渲染景點介紹 */}
                 {event.landmark && event.query && <LandmarkInfo query={event.query} />}
             </div>
         );
 
         // Component: ExpenseTracker (預算追蹤器)
-        const ExpenseTracker = ({ db, userId, rate, rateError, refreshRate, rateLoading }) => {
+        const ExpenseTracker = ({ rate, rateError, refreshRate, rateLoading }) => {
+            const { expenses, addExpense, toggleDone, deleteItem } = useLocalExpenses();
+            
             const [itemName, setItemName] = useState('');
             const [jpyValue, setJpyValue] = useState('');
             const [payerName, setPayerName] = useState('我');
-            
-            const expenses = useTripExpenses(db, userId, true); 
             
             const totalJPY = useMemo(() => expenses.reduce((sum, item) => sum + item.jpy, 0), [expenses]);
             const totalTWD = totalJPY * rate;
             
             // --- CRUD Operations ---
-            const handleAddItem = async (e) => {
+            const handleAddItem = (e) => {
                 e.preventDefault();
                 const name = itemName.trim();
                 const payer = payerName.trim() || '未指定';
                 const jpy = parseFloat(jpyValue);
 
-                if (!db || !userId || name === '' || isNaN(jpy) || jpy <= 0) return;
+                if (name === '' || isNaN(jpy) || jpy <= 0) return;
+                
+                addExpense({ name, jpy, payerName: payer });
 
-                try {
-                    const COLLECTION_PATH = `/artifacts/${appId}/users/${userId}/${COLLECTION_NAME}`;
-                    const userTripCollectionRef = window.firebase.collection(db, COLLECTION_PATH);
-                    await window.firebase.addDoc(userTripCollectionRef, {
-                        name: name,
-                        jpy: jpy,
-                        isDone: false,
-                        payerName: payer, 
-                        createdAt: window.firebase.Timestamp.now(),
-                    });
-                    setItemName('');
-                    setJpyValue('');
-                    setPayerName('我');
-                } catch (e) {
-                    console.error("Error adding document: ", e);
-                    alert(`新增項目失敗: ${e.message}`); 
-                }
+                setItemName('');
+                setJpyValue('');
+                setPayerName('我');
             };
             
-            const handleToggleDone = async (id, isDone) => {
-                if (!db || !userId) return;
-                try {
-                    const COLLECTION_PATH = `/artifacts/${appId}/users/${userId}/${COLLECTION_NAME}`;
-                    const itemRef = window.firebase.doc(db, `${COLLECTION_PATH}/${id}`);
-                    await window.firebase.updateDoc(itemRef, { isDone: isDone });
-                } catch (e) {
-                    console.error("Error updating document: ", e);
-                }
+            const handleToggleDone = (id, isDone) => {
+                toggleDone(id, isDone);
             };
 
-            const handleDeleteItem = async (id) => {
-                if (!db || !userId) return;
-                try {
-                    const COLLECTION_PATH = `/artifacts/${appId}/users/${userId}/${COLLECTION_NAME}`;
-                    const itemRef = window.firebase.doc(db, `${COLLECTION_PATH}/${id}`);
-                    await window.firebase.deleteDoc(itemRef);
-                } catch (e) {
-                    console.error("Error deleting document: ", e);
-                }
+            const handleDeleteItem = (id) => {
+                deleteItem(id);
             };
             
             // --- Export to CSV Function ---
             const exportToCSV = () => {
                 if (expenses.length === 0) {
-                    alert('清單中沒有花費項目可供匯出！');
+                    console.log('清單中沒有花費項目可供匯出！'); // Log instead of alert
                     return;
                 }
 
@@ -447,6 +382,17 @@
                         旅費記帳本 (共 {expenses.length} 筆)
                     </h2>
                     
+                    {/* Local Storage Warning */}
+                    <div className="bg-yellow-50 p-4 rounded-xl mb-4 border border-yellow-200">
+                        <p className="text-sm font-semibold text-yellow-800 flex items-center">
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            本資料儲存在**您的瀏覽器中** (Local Storage)。
+                        </p>
+                        <p className="text-xs text-yellow-700 mt-1">
+                            ⚠️ 換電腦或清空瀏覽器快取會遺失資料。若要同步到雲端，請聯繫平台管理員設定 Firebase。
+                        </p>
+                    </div>
+
                     {/* Exchange Rate Status (即時匯率功能區) */}
                     <div className="bg-indigo-50 p-4 rounded-xl mb-4 border border-indigo-200">
                         <div className="flex justify-between items-center">
@@ -471,7 +417,7 @@
                         <p className="text-md font-semibold mb-1">總花費概估</p>
                         <div className="flex justify-between items-baseline">
                             <span className="text-4xl font-extrabold text-yellow-300">
-                                NT$ {totalTWD.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                NT$ {(totalTWD).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                             </span>
                             <span className="text-lg font-bold">
                                 ¥ {totalJPY.toLocaleString('en-US')}
@@ -532,7 +478,7 @@
                     {/* Expense List */}
                     <ul className="space-y-3 hide-scrollbar max-h-96 overflow-y-auto">
                         {expenses.length === 0 ? (
-                            <p className="text-gray-500 p-4 text-center bg-gray-50 rounded-lg shadow-inner">清單是空的！</p>
+                            <p className="text-gray-500 p-4 text-center bg-gray-50 rounded-lg shadow-inner">清單是空的！新增第一筆花費吧！</p>
                         ) : (
                             expenses.map(item => (
                                 <li key={item.id} className={`flex items-center justify-between p-3 rounded-xl shadow-sm transition-all border ${item.isDone ? 'bg-gray-100 opacity-70 border-gray-300 line-through' : 'bg-white border-rose-100 hover:shadow-md'}`}>
@@ -575,7 +521,6 @@
         // Component: App (Main Layout)
         const App = () => {
             const [activeDay, setActiveDay] = useState(tripData[0].day);
-            const { userId, isAuthReady, firebaseError, db } = useAuthAndFirebase();
             
             // State for Exchange Rate
             const [exchangeRate, setExchangeRate] = useState(DEFAULT_JPY_TO_TWD_RATE);
@@ -589,6 +534,7 @@
                 const rateText = await callGeminiApi(ratePrompt, rateSystem);
                 const numericalRate = parseFloat(rateText);
 
+                // Basic validation for rate
                 if (!isNaN(numericalRate) && numericalRate > 0.05 && numericalRate < 0.5) { 
                     setExchangeRate(numericalRate);
                     setRateError(null);
@@ -612,16 +558,6 @@
             // Find the active day's data
             const currentDay = tripData.find(d => d.day === activeDay);
 
-            if (!isAuthReady) {
-                return (
-                    <div className="min-h-screen flex items-center justify-center bg-rose-50">
-                        <div className="text-xl font-semibold text-rose-600 animate-pulse p-4 rounded-lg bg-white shadow-lg">
-                            正在初始化... (讀取使用者資料與 Firebase)
-                        </div>
-                    </div>
-                );
-            }
-
             return (
                 <div className="max-w-xl mx-auto min-h-screen pb-4">
                     {/* Header */}
@@ -632,14 +568,6 @@
                         <p className="text-sm text-gray-500 mt-1">
                             2026年 5月10日 (六) ～ 5月16日 (五)
                         </p>
-                        <p className="text-xs text-gray-400 mt-2 truncate">
-                             <span className="font-bold">使用者 ID:</span> {userId || '匿名使用者'}
-                        </p>
-                        {firebaseError && (
-                            <div className="mt-2 text-xs text-red-700 bg-red-100 p-2 rounded">
-                                <span className="font-bold">資料庫錯誤:</span> {firebaseError}
-                            </div>
-                        )}
                     </header>
 
                     <main className="px-4 space-y-8">
@@ -701,8 +629,6 @@
 
                         {/* Expense Tracker Section */}
                         <ExpenseTracker 
-                            db={db} 
-                            userId={userId} 
                             rate={exchangeRate} 
                             rateError={rateError} 
                             refreshRate={refreshRate}
