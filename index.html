@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>關西姊妹淘七日悠閒之旅 - 匯率版</title>
+    <title>關西七日悠閒之旅</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -37,20 +37,20 @@
         .animate-fade-in {
             animation: fade-in 0.5s ease-out forwards;
         }
-        /* Style for disabled buttons/inputs during loading */
-        .loading-dim:disabled, .loading-dim {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useCallback, useMemo } = React;
+        const { useState, useEffect, useMemo } = React;
 
-        // --- Firebase/環境變數初始化 (保持強健的解析邏輯) ---
+        // --- 匯率配置 ---
+        // 這是預設的匯率，使用者可以自行修改
+        const DEFAULT_RATE = 0.2150; 
+        // ----------------
+
+        // 雖然不再使用 API，但仍保留環境變數初始化結構
         let firebaseConfig = null;
         if (typeof __firebase_config !== 'undefined') {
             try {
@@ -65,13 +65,13 @@
 
 
         /**
-         * 關西姊妹淘七日悠閒之旅 行程表 (Day 1 - Day 7)
+         * 關西七日悠閒之旅 行程表 (Day 1 - Day 7)
          */
         const initialItinerary = [
             {
                 day: 1,
                 date: "星期六 (5/10)",
-                theme: "抵達與震撼獅子頭",
+                theme: "抵達與難波八阪神社⛩️",
                 events: [
                     { time: "08:55", name: "飛機抵達關西機場", description: "08:55-12:30：飛機抵達關西機場，準備入境。", location: "KIX" },
                     { time: "13:30", name: "搭乘南海電鐵 Rapi:t", description: "直達難波站。", location: "難波" },
@@ -193,194 +193,73 @@
             </div>
         );
 
-        // --- Gemini API Fetcher ---
+        // --- Currency Converter Component (Manual Mode) ---
 
-        const useGeminiApi = () => {
-             // Core Fetching function for Gemini API (Supports text and structured JSON)
-            const geminiFetch = useCallback(async (userQuery, systemPrompt, customConfig = {}) => {
-                const apiKey = "";
-                const model = 'gemini-2.5-flash-preview-09-2025';
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                
-                // Configuration for the LLM call - Keeping Google Search for currency grounding
-                const payload = {
-                    contents: [{ parts: [{ text: userQuery }] }],
-                    tools: [{ "google_search": {} }], 
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                    ...(Object.keys(customConfig).length > 0 && { generationConfig: customConfig }),
-                };
-                
-                let attempts = 0;
-                const maxAttempts = 3;
-                while (attempts < maxAttempts) {
-                    try {
-                        const response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-
-                        const result = await response.json();
-                        const candidate = result.candidates?.[0];
-
-                        if (candidate && candidate.content?.parts?.[0]?.text) {
-                            const rawText = candidate.content.parts[0].text;
-                            
-                            // 1. Extract Sources (Grounding)
-                            let sources = [];
-                            const groundingMetadata = candidate.groundingMetadata;
-                            if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                                sources = groundingMetadata.groundingAttributions
-                                    .map(attribution => ({ uri: attribution.web?.uri, title: attribution.web?.title }))
-                                    .filter(source => source.uri && source.title);
-                            }
-
-                            // 2. Handle Structured JSON response (if used)
-                            if (customConfig.responseMimeType === "application/json") {
-                                try {
-                                    const parsedContent = JSON.parse(rawText);
-                                    return { content: parsedContent, sources, error: false };
-                                } catch (e) {
-                                    console.error("JSON Parsing Error:", e, rawText);
-                                    return { content: null, sources: [], error: true, errorMessage: "API 回應非標準 JSON 格式。" };
-                                }
-                            }
-
-                            // 3. Handle Plain Text response
-                            return { content: rawText, sources, error: false };
-                        }
-                        return { content: null, sources: [], error: true, errorMessage: "API 回應內容結構異常。" };
-
-                    } catch (err) {
-                        console.error(`Attempt ${attempts + 1} failed for query:`, userQuery, err);
-                        attempts++;
-                        if (attempts < maxAttempts) {
-                            const delay = Math.pow(2, attempts) * 1000;
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                        }
-                    }
-                }
-                return { content: null, sources: [], error: true, errorMessage: "網路連線或服務查詢失敗。" };
-            }, []);
-
-            return { geminiFetch };
-        }
-
-        // --- Currency Converter Component ---
-
-        const CurrencyConverter = ({ geminiFetch }) => {
-            const [rate, setRate] = useState(null);
+        const CurrencyConverter = () => {
+            // 1. 手動設定的匯率 (1 JPY = ? TWD)
+            const [manualRate, setManualRate] = useState(DEFAULT_RATE);
+            // 2. 日幣金額輸入
             const [jpyAmount, setJpyAmount] = useState(10000);
-            const [isLoading, setIsLoading] = useState(false);
-            const [apiError, setApiError] = useState(null);
-            const [lastUpdated, setLastUpdated] = useState(null);
-
-             // Rate Fetching using the plain text output, relies on robust parsing
-            const fetchExchangeRate = useCallback(async () => {
-                const systemPrompt = "You are a specialized financial data parser. Provide only the current exchange rate for 1 JPY to TWD, formatted precisely as a single number rounded to 4 decimal places, with no units, commentary, or text. For example: '0.2150'.";
-                const userQuery = "Current exchange rate for 1 Japanese Yen (JPY) in New Taiwan Dollars (TWD).";
-                
-                const result = await geminiFetch(userQuery, systemPrompt);
-
-                if (result.error) {
-                    return { error: result.errorMessage };
+            
+            // 處理匯率輸入變化
+            const handleRateChange = (e) => {
+                const value = e.target.value;
+                // 允許空字串或數字
+                if (value === '' || !isNaN(parseFloat(value))) {
+                    setManualRate(value);
                 }
+            };
+            
+            // 處理日幣金額輸入變化
+            const handleJpyAmountChange = (e) => {
+                setJpyAmount(e.target.value);
+            };
 
-                const rateText = result.content.trim();
-                
-                // Enhanced Parsing: Try to find a floating point number in the string
-                const match = rateText.match(/(\d+\.\d+)/); 
-                let rateValue = NaN;
-
-                if (match) {
-                    rateValue = parseFloat(match[1]);
-                } else {
-                    rateValue = parseFloat(rateText);
-                }
-
-                if (!isNaN(rateValue) && rateValue > 0) {
-                    return { rate: rateValue, error: null, sources: result.sources };
-                }
-                
-                return { error: `無法解析匯率，請手動檢查。API回應: "${rateText.substring(0, 30)}..."` };
-            }, [geminiFetch]);
-
-
-            // Fetch the rate on mount
-            useEffect(() => {
-                const initFetch = async () => {
-                    setIsLoading(true);
-                    const result = await fetchExchangeRate();
-                    
-                    if (result.error) {
-                        setApiError(result.error);
-                    } else if (result.rate) {
-                        setRate(result.rate);
-                        setLastUpdated(new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }));
-                    } 
-                    setIsLoading(false);
-                };
-                initFetch();
-            }, [fetchExchangeRate]); 
-
-            const handleRefreshRate = async () => {
-                setIsLoading(true);
-                setApiError(null);
-                const result = await fetchExchangeRate();
-
-                if (result.error) {
-                    setApiError(result.error);
-                } else if (result.rate) {
-                    setRate(result.rate);
-                    setLastUpdated(new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }));
-                } else {
-                    setApiError("無法解析匯率數據，請嘗試重新整理。");
-                }
-                setIsLoading(false);
-            }
-
+            // 計算換算結果
             const convertedTwd = useMemo(() => {
+                const rate = parseFloat(manualRate);
                 const amount = parseFloat(jpyAmount);
-                if (rate && !isNaN(amount) && amount >= 0) {
-                    return (amount * rate).toFixed(4); // 保持四位小數，讓使用者自己取捨
+
+                // 檢查是否有有效數字
+                if (rate > 0 && !isNaN(amount) && amount >= 0) {
+                    // 保持四位小數，並使用逗號格式化
+                    return (amount * rate).toFixed(4).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 }
                 return '0.0000';
-            }, [jpyAmount, rate]);
+            }, [jpyAmount, manualRate]);
 
             return (
                 <div className="p-4 mb-6 bg-white rounded-2xl shadow-xl border border-pink-300 animate-fade-in">
                     <div className="flex justify-between items-start mb-3 border-b pb-2">
                         <h2 className="text-lg font-bold text-pink-600 flex items-center">
-                            <span className="text-xl mr-2">💰</span> JPY 兌 TWD 即時匯率
+                            <span className="text-xl mr-2">💱</span> 匯率設定與轉換 (手動模式)
                         </h2>
-                        <div className="text-right">
-                            <p className="text-sm font-semibold text-gray-700">
-                                1 JPY 約: <span className="text-pink-600">{rate ? rate.toFixed(4) : '---'}</span> TWD
-                            </p>
-                            <p className="text-xs text-gray-400 mt-0.5">
-                                更新時間: {lastUpdated || '載入中...'}
-                                <button 
-                                    onClick={handleRefreshRate} 
-                                    disabled={isLoading}
-                                    className={`ml-1 text-pink-500 hover:text-pink-700 transition-colors ${isLoading ? 'opacity-50' : ''}`}
-                                    title="重新整理匯率"
-                                >
-                                    {isLoading ? <span className="text-xs animate-spin">🌀</span> : '🔄'}
-                                </button>
-                            </p>
-                        </div>
                     </div>
 
-                    {apiError && (
-                        <p className="text-red-500 text-center mb-3 p-2 text-sm bg-red-50 rounded-lg">
-                            ❌ {apiError}
+                    {/* 匯率設定區 */}
+                    <div className="mb-4 p-3 bg-pink-50 rounded-lg border border-pink-200">
+                        <label className="block text-sm font-medium text-pink-700 mb-1">
+                            1 JPY 兌換 TWD 匯率 (可編輯)
+                        </label>
+                        <div className="flex items-center">
+                            <span className="text-sm font-bold text-gray-600 mr-2">1 JPY = </span>
+                            <input
+                                type="number"
+                                inputMode="decimal"
+                                step="0.0001"
+                                value={manualRate}
+                                onChange={handleRateChange}
+                                className="w-24 p-2 border border-pink-300 rounded-lg text-base text-gray-800 focus:outline-none focus:border-pink-500 transition duration-150"
+                                placeholder="0.0000"
+                            />
+                            <span className="text-sm font-bold text-gray-600 ml-2"> TWD</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                            * 請自行輸入您目前使用的日幣匯率，例如：0.2150
                         </p>
-                    )}
+                    </div>
 
+                    {/* 金額轉換區 */}
                     <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
                         {/* JPY Input */}
                         <div className="flex items-center w-full sm:w-1/2">
@@ -389,11 +268,10 @@
                                 inputMode="numeric"
                                 pattern="[0-9]*"
                                 value={jpyAmount}
-                                onChange={(e) => setJpyAmount(e.target.value)}
-                                className={`w-full p-2 border border-pink-300 rounded-l-lg text-base text-gray-800 focus:outline-none focus:border-pink-500 transition duration-150 ${isLoading ? 'loading-dim' : ''}`}
+                                onChange={handleJpyAmountChange}
+                                className="w-full p-2 border border-pink-300 rounded-l-lg text-base text-gray-800 focus:outline-none focus:border-pink-500 transition duration-150"
                                 placeholder="日幣金額"
                                 min="0"
-                                disabled={isLoading}
                             />
                             <span className="p-2 bg-pink-500 text-white rounded-r-lg font-bold text-sm">JPY</span>
                         </div>
@@ -416,13 +294,12 @@
 
         const App = () => {
             const [activeDay, setActiveDay] = useState(initialItinerary[0].day);
-            const { geminiFetch } = useGeminiApi();
             
             const currentDay = initialItinerary.find(d => d.day === activeDay);
 
             return (
                 <div className="min-h-screen">
-                    <Header title="關西姊妹淘七日悠閒之旅 (匯率專注版)" />
+                    <Header title="關西姊妹淘七日悠閒之旅 (手動匯率模式)" />
 
                     <DaySelector 
                         days={initialItinerary} 
@@ -432,10 +309,8 @@
 
                     <main className="p-4 max-w-xl mx-auto">
                         
-                        {/* 1. Currency Converter (Focus Element) */}
-                        <CurrencyConverter 
-                            geminiFetch={geminiFetch} 
-                        />
+                        {/* 1. Currency Converter (Manual Mode) */}
+                        <CurrencyConverter />
                         
                         {/* 2. Itinerary Details */}
                         <div className="bg-white p-4 rounded-2xl shadow-xl mb-6 animate-fade-in">
@@ -461,7 +336,6 @@
                         {/* Footer */}
                         <div className="text-center text-rose-300 text-xs pb-10">
                             Made with ❤️ for Sisters Trip 2026
-                            <br/>即時資訊由 Google 搜尋提供
                         </div>
 
 
