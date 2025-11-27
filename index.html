@@ -45,7 +45,7 @@
     <script type="text/babel">
         const { useState, useEffect, useCallback, useMemo } = React;
 
-        // Firebase & Firestore Global Variables Setup (as required by environment)
+        // Firebase & Firestore Global Variables Setup (as required by environment - currently unused but kept for compliance)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
@@ -352,6 +352,7 @@
             }, [fetchWeather]);
 
             useEffect(() => {
+                // Only fetch if data doesn't exist for the selected city
                 if (!allWeatherData[selectedCity]) {
                     handleFetchCityWeather(selectedCity);
                 }
@@ -495,7 +496,7 @@
                 return { city, text: result.text, sources: result.sources, error: false };
             }, [geminiFetch]);
 
-            // Rate Fetching using the core function
+            // Rate Fetching using the core function - Enhanced Parsing Logic
             const fetchExchangeRate = useCallback(async () => {
                 const systemPrompt = "You are a specialized financial data parser. Provide only the current exchange rate for 1 JPY to TWD, formatted precisely as a single number rounded to 4 decimal places, with no units, commentary, or text. For example: '0.2150'.";
                 const userQuery = "Current exchange rate for 1 Japanese Yen (JPY) in New Taiwan Dollars (TWD).";
@@ -507,14 +508,24 @@
                 }
 
                 const rateText = result.text.trim();
-                const rateValue = parseFloat(rateText);
+                
+                // 1. Try to extract a floating point number using regex for robustness
+                const match = rateText.match(/(\d+\.\d+)/); 
+                let rateValue = NaN;
+
+                if (match) {
+                    rateValue = parseFloat(match[1]);
+                } else {
+                    // 2. Fallback to simple parseFloat if regex fails (in case it returns just the number)
+                    rateValue = parseFloat(rateText);
+                }
 
                 if (!isNaN(rateValue) && rateValue > 0) {
                     return { rate: rateValue, error: null };
                 }
                 
-                // If parsing fails, return a custom error message
-                return { error: `無法解析匯率：${rateText.substring(0, 30)}...` };
+                // 3. If parsing fails, return a custom error message
+                return { error: `無法解析匯率：API回應為 "${rateText.substring(0, 30)}..."` };
             }, [geminiFetch]);
 
 
