@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>關西姊妹淘七日悠閒之旅</title>
+    <title>關西姊妹淘七日悠閒之旅：行程、預算與匯出</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -15,9 +15,18 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts: 圓體字讓行程看起來更可愛 -->
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
 
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, query, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Export Firebase functions to the global window object for Babel to access in the JSX script block
+        window.firebase = { initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, getFirestore, doc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, query, Timestamp };
+    </script>
+    
     <style>
         body {
             font-family: 'Zen Maru Gothic', sans-serif;
@@ -27,25 +36,15 @@
             display: none;
         }
         .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
         }
         @keyframes fade-in {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-in {
-            animation: fade-in 0.5s ease-out forwards;
-        }
-        /* Custom select arrow */
-        select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23e11d48%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.7rem top 50%;
-            background-size: 0.65rem auto;
+        .fade-in {
+            animation: fade-in 0.5s ease-out;
         }
     </style>
 </head>
@@ -53,491 +52,647 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo, useCallback } = React;
 
-        // --- 設定區 ---
-        // 預設匯率 (1 JPY = 0.22 TWD)
-        const EXCHANGE_RATE = 0.22; 
+        // --- Global Config and Utilities ---
+        
+        // Firebase Global Variables (Provided by environment)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        const DEFAULT_JPY_TO_TWD_RATE = 0.22;
+        const MAX_RETRIES = 3;
+        const COLLECTION_NAME = 'kansai_sisters_trip';
 
-        // 行程資料
-        const itineraryData = [
-            {
-                day: 1,
-                date: "5/10 (六)",
-                location: "大阪難波",
-                weather: "Sunny", 
-                temp: "18°C - 24°C",
-                title: "大阪初見 & 獅子頭",
-                stay: "東橫INN 大阪難波西",
+        // Initialize Firebase instances
+        let appInstance, dbInstance, authInstance;
+
+        // --- FINALIZED TRIP DATA ---
+        const TRIP_SUMMARY = "這是一份為你們量身打造、最終定案的【關西姊妹淘七日悠閒之旅 (2026/5/10-5/16)】行程總表。全程連住難波，結合了天橋立跟團的輕鬆、和牛大餐的美味，以及無印良品旗艦店的購物樂趣。這趟旅程主打悠閒不趕路，讓姐妹們能盡情享受京阪神的優雅風情。";
+        
+        const tripData = [
+            { 
+                day: 1, date: "5/10 (六)", title: "抵達與震撼獅子頭 🦁", location: "大阪難波", weather: "晴朗，24°C/15°C", 
                 events: [
-                    { time: "08:55", icon: "Plane", title: "飛機起飛", desc: "帶著好心情出發！(桃園 -> 關西)", intro: "記得提早 2 小時抵達機場辦理登機，護照要隨身攜帶喔！" },
-                    { time: "12:30", icon: "MapPin", title: "抵達關西機場", desc: "入境後搭乘南海電鐵 Rapi:t 直奔難波", intro: "入境後跟著「鐵道」指標走，搭乘藍色的南海電鐵特急 Rapi:t，約 38 分鐘就能舒適抵達難波站，不用轉車超方便！" },
-                    { time: "15:00", icon: "Hotel", title: "飯店 Check-in", desc: "東橫INN 放行李、補妝、稍作休息" },
-                    { time: "16:00", icon: "Camera", title: "難波八阪神社 🦁", desc: "必拍巨大獅子頭！吸厄運招勝運", intro: "這裡有高達 12 公尺的巨大獅子殿！張開的獅子大口據說能將厄運吸進去，並招來好運（勝運）。這裡是大阪超人氣的打卡點，非常壯觀，一定要跟獅子頭合照一張！" },
-                    { time: "18:00", icon: "Utensils", title: "道頓堀 & 心齋橋", desc: "晚餐：一蘭拉麵或章魚燒，跟跑跑人合照", intro: "大阪最熱鬧的地方！一定要跟運河旁的「固力果跑跑人」看板合照。晚餐推薦吃一蘭拉麵、章魚燒（本家大特古），或者試試看元祖炸串。藥妝店也超級多，可以先比價！" }
-                ]
+                    { time: "08:55-12:30", description: "飛機抵達關西機場 (KIX)", landmark: false },
+                    { time: "13:30", description: "搭乘南海電鐵 Rapi:t 直達難波站", landmark: false },
+                    { time: "15:00", description: "飯店 Check-in（放行李、補妝）", landmark: false },
+                    { time: "16:00-17:00", description: "【難波八阪神社】 🦁 必拍！", landmark: true, query: "難波八阪神社" },
+                    { time: "18:00", description: "道頓堀 & 心齋橋晚餐：一蘭拉麵/章魚燒", landmark: true, query: "道頓堀" },
+                ] 
             },
-            {
-                day: 2,
-                date: "5/11 (日)",
-                location: "京都",
-                weather: "Cloudy",
-                temp: "16°C - 23°C",
-                title: "京都經典 & 和服散策",
-                stay: "東橫INN 大阪難波西",
+            { 
+                day: 2, date: "5/11 (日)", title: "京都經典：千本鳥居 & 清水舞台 ⛩️", location: "京都", weather: "多雲，25°C/16°C", 
                 events: [
-                    { time: "09:00", icon: "Train", title: "前往京都", desc: "從難波出發" },
-                    { time: "10:00", icon: "Shrine", title: "伏見稻荷大社 ⛩️", desc: "千本鳥居隧道，紅色視覺震撼", intro: "電影《藝伎回憶錄》的拍攝場景。綿延不絕的朱紅色「千本鳥居」隧道非常夢幻，是京都代表性的景觀。建議往山上走一點，人潮會比較少，比較好拍照喔！" },
-                    { time: "12:00", icon: "Utensils", title: "錦市場午餐", desc: "京都的廚房：豆乳甜甜圈、三木雞卵", intro: "有 400 年歷史的市場，被稱為「京都的廚房」。必吃美食：豆乳甜甜圈（小小一顆超順口）、三木雞卵（高湯玉子燒）、還有各式各樣的炸魚板和漬物。" },
-                    { time: "14:00", icon: "Camera", title: "清水寺 & 二三年坂", desc: "清水舞台、音羽瀑布，下午茶", intro: "世界文化遺產，著名的「清水舞台」由 139 根巨木懸空支撐，沒用一根釘子！參拜完可以去「音羽瀑布」喝水祈福（學業、戀愛、長壽）。回程順著二三年坂走，有非常多京都風情的古老小店，還有榻榻米星巴克可以休息。" },
-                    { time: "19:00", icon: "Train", title: "返回大阪", desc: "回到難波享用晚餐" }
-                ]
+                    { time: "09:00", description: "從難波出發前往京都", landmark: false },
+                    { time: "10:00-11:30", description: "【伏見稻荷大社】 ⛩️ 走千本鳥居", landmark: true, query: "伏見稻荷大社" },
+                    { time: "12:00-13:30", description: "【錦市場】 (午餐) - 邊走邊吃", landmark: true, query: "錦市場" },
+                    { time: "14:00-17:00", description: "【清水寺 & 二三年坂】 🏯 逛老街小店", landmark: true, query: "清水寺" },
+                    { time: "下午茶", description: "星巴克京都二寧坂茶屋店（榻榻米）", landmark: true, query: "星巴克京都二寧坂茶屋店" },
+                    { time: "19:00", description: "回到大阪難波吃晚餐", landmark: false },
+                ] 
             },
-            {
-                day: 3,
-                date: "5/12 (一)",
-                location: "天橋立",
-                weather: "Sunny",
-                temp: "15°C - 22°C",
-                title: "海之京都一日遊",
-                stay: "東橫INN 大阪難波西",
+            { 
+                day: 3, date: "5/12 (一)", title: "海之京都：天橋立 & 伊根舟屋 (跟團) 🚢", location: "天橋立/伊根", weather: "晴時多雲，22°C/14°C", 
                 events: [
-                    { time: "07:20", icon: "Bus", title: "難波集合", desc: "參加一日遊團 (OCAT或VIP Villa)" },
-                    { time: "上午", icon: "Mountain", title: "天橋立 飛龍觀 🚠", desc: "搭纜車，「股見」看飛龍在天絕景", intro: "日本三景之一！搭纜車上山後，一定要試試「股見」（彎腰從兩腿之間看），原本的沙洲會看起來像一條飛龍在天上飛舞，非常神奇！" },
-                    { time: "下午", icon: "Ship", title: "伊根舟屋遊船 🛥️", desc: "欣賞水上屋，買蝦味先餵海鷗", intro: "被稱為「日本威尼斯」的小漁村。舟屋的一樓是船庫，二樓是住家，看起來就像房子浮在水面上。搭遊覽船時可以買包蝦味先，海鷗和老鷹會飛過來搶食，超級好玩（但也超刺激）！" },
-                    { time: "18:30", icon: "Home", title: "返回難波解散", desc: "晚餐買便利商店或吉野家，早點休息" }
-                ]
+                    { time: "07:20", description: "難波集合 (OCAT/VIP Villa，視報名團而定)", landmark: false },
+                    { time: "上午", description: "【天橋立】 🚠 搭纜車上「飛龍觀」", landmark: true, query: "天橋立" },
+                    { time: "下午", description: "【伊根舟屋】 🛥️ 搭遊覽船、餵海鷗", landmark: true, query: "伊根舟屋" },
+                    { time: "18:30", description: "巴士回到難波解散", landmark: false },
+                    { time: "晚餐", description: "飯店附近便利商店或吉野家簡單吃，早點休息", landmark: false },
+                ] 
             },
-            {
-                day: 4,
-                date: "5/13 (二)",
-                location: "神戶",
-                weather: "PartlyCloudy",
-                temp: "17°C - 23°C",
-                title: "神戶優雅花園與夜景",
-                stay: "東橫INN 大阪難波西",
+            { 
+                day: 4, date: "5/13 (二)", title: "神戶優雅行：花園與夜景 🎡", location: "神戶", weather: "晴朗，26°C/18°C", 
                 events: [
-                    { time: "10:00", icon: "Train", title: "前往神戶三宮", desc: "搭乘阪神電車" },
-                    { time: "10:30", icon: "Flower", title: "神戶布引香草園 🌸", desc: "夢幻空中纜車，看海景聞花香", intro: "搭乘復古車廂的空中纜車上山，沿途可以俯瞰神戶市區和大海。山頂是全日本最大的香草園，四季都有不同的花卉盛開，充滿歐洲度假風情，很適合拍美照！" },
-                    { time: "14:00", icon: "Home", title: "北野異人館街", desc: "風見雞之館、萌黃之館", intro: "以前外國商人居住的區域，保留了許多西洋風格的洋房。最有名的是屋頂有隻雞的「風見雞之館」和淡綠色的「萌黃之館」。這裡的星巴克也是古蹟改建的，非常有氣氛。" },
-                    { time: "16:00", icon: "Moon", title: "神戶港 Mosaic", desc: "百萬夜景、神戶塔點燈、麵包超人博物館外觀", intro: "神戶最浪漫的地方！可以在 Mosaic 廣場逛街吃飯，欣賞紅色的神戶塔和海洋博物館。晚上的夜景被譽為千萬美元夜景，氣氛極佳。" }
-                ]
+                    { time: "10:00", description: "搭阪神電車前往神戶三宮", landmark: false },
+                    { time: "10:30-13:30", description: "【神戶布引香草園】 🌸 搭纜車、賞花", landmark: true, query: "神戶布引香草園" },
+                    { time: "14:00-15:30", description: "【北野異人館街】 🏠 參觀風見雞之館", landmark: true, query: "北野異人館街" },
+                    { time: "16:00-19:00", description: "【神戶港 Mosaic 廣場】 🎡 看神戶塔點燈/百萬夜景", landmark: true, query: "神戶港" },
+                ] 
             },
-            {
-                day: 5,
-                date: "5/14 (三)",
-                location: "大阪梅田",
-                weather: "Rain",
-                temp: "18°C - 21°C",
-                title: "旗艦購物 & 和牛之夜",
-                stay: "東橫INN 大阪難波西",
+            { 
+                day: 5, date: "5/14 (三)", title: "旗艦購物 & 黑毛和牛之夜 🥩", location: "大阪梅田/難波", weather: "陣雨，23°C/17°C", 
                 events: [
-                    { time: "11:00", icon: "ShoppingBag", title: "梅田 Grand Front", desc: "無印良品關西旗艦店 (北館4F) 大逛特逛", intro: "這裡有關西最大的無印良品旗艦店，不但商品最齊全，還有 IDÉE 家具展示和 Cafe&Meal MUJI。梅田區百貨林立，是購物狂的天堂！" },
-                    { time: "15:30", icon: "Package", title: "戰利品放飯店", desc: "先把東西拿回難波放" },
-                    { time: "16:30", icon: "ShoppingBag", title: "心齋橋補貨", desc: "藥妝、Uniqlo 最後衝刺" },
-                    { time: "19:30", icon: "Flame", title: "黑毛和牛大餐 🥩", desc: "已預約！(松阪牛燒肉M 或 力丸)", intro: "本次旅程的重頭戲！享受入口即化的黑毛和牛。如果是去「松阪牛燒肉 M」，可以品嚐到頂級的松阪牛部位；如果是「力丸」，則是可以豪邁地吃到飽！記得要空腹來喔！" }
-                ]
+                    { time: "11:00-15:00", description: "梅田商圈 (Grand Front Osaka) - 【無印良品 關西旗艦店】", landmark: true, query: "Grand Front Osaka" },
+                    { time: "15:30", description: "先把戰利品拿回難波飯店放", landmark: false },
+                    { time: "16:30-18:30", description: "心齋橋補貨（藥妝、Uniqlo、零食）", landmark: true, query: "心齋橋" },
+                    { time: "19:30", description: "晚餐：【黑毛和牛大餐】 🥩 (松阪牛 M / 燒肉力丸) - 務必提前一個月訂位！", landmark: true, query: "大阪和牛餐廳" },
+                ] 
             },
-            {
-                day: 6,
-                date: "5/15 (四)",
-                location: "大阪下町",
-                weather: "Sunny",
-                temp: "19°C - 25°C",
-                title: "老大阪風情 & 市場",
-                stay: "東橫INN 大阪難波西",
+            { 
+                day: 6, date: "5/15 (四)", title: "老大阪風情：市場與通天閣 🗼", location: "大阪難波/新世界", weather: "多雲，24°C/16°C", 
                 events: [
-                    { time: "10:00", icon: "Utensils", title: "黑門市場早午餐 🦀", desc: "現烤扇貝、海膽、水果大福", intro: "大阪人的廚房！這裡可以吃到最新鮮的海鮮。推薦現烤的大扇貝（比手掌還大！）、海膽、河豚生魚片，還有神戶牛串燒。飯後再來一顆草莓大福，完美！" },
-                    { time: "12:30", icon: "Coffee", title: "千日前道具街", desc: "看逼真食物模型、精緻廚具", intro: "專賣廚房用品的街道。最特別的是這裡有許多製作精美的「食物模型」（像是假的拉麵、壽司），做得跟真的一樣，很適合買回家當紀念品。" },
-                    { time: "15:00", icon: "MapPin", title: "新世界 & 通天閣 🗼", desc: "昭和復古風情，必吃「達摩炸串」", intro: "充滿昭和時代懷舊氛圍的街區，誇張的立體招牌是這裡的特色。必吃名物「炸串 (Kushikatsu)」，推薦「達摩炸串」，麵衣薄脆不油膩，配上啤酒最棒了！" },
-                    { time: "18:00", icon: "Utensils", title: "道頓堀最後巡禮", desc: "晚餐：大阪燒" }
-                ]
+                    { time: "10:00-12:00", description: "【黑門市場】 🦀 早午餐：現烤海鮮、和牛串燒", landmark: true, query: "黑門市場" },
+                    { time: "12:30-14:30", description: "【千日前道具街】 🍳 逛食物模型、精緻廚具", landmark: true, query: "千日前道具街" },
+                    { time: "15:00-17:00", description: "【新世界 & 通天閣】 🗼 充滿昭和復古味", landmark: true, query: "通天閣 新世界" },
+                    { time: "點心", description: "必吃 大阪炸串 (Kushikatsu)，推薦「達摩炸串」", landmark: false },
+                    { time: "晚餐", description: "道頓堀最後巡禮（大阪燒）", landmark: false },
+                ] 
             },
-            {
-                day: 7,
-                date: "5/16 (五)",
-                location: "大阪 -> 台灣",
-                weather: "Sunny",
-                temp: "20°C - 26°C",
-                title: "收心回家",
-                stay: "溫暖的家",
+            { 
+                day: 7, date: "5/16 (五)", title: "收心回家 ✈️", location: "難波/KIX", weather: "晴朗，27°C/19°C", 
                 events: [
-                    { time: "09:30", icon: "LogOut", title: "退房", desc: "難波周邊悠閒早餐" },
-                    { time: "11:30", icon: "Train", title: "前往機場", desc: "搭乘南海電鐵" },
-                    { time: "13:30", icon: "Plane", title: "飛機起飛 ✈️", desc: "帶著滿滿戰利品與回憶回家！" }
-                ]
-            }
+                    { time: "09:30", description: "退房，行李可寄放飯店或拉至車站寄放", landmark: false },
+                    { time: "10:00", description: "難波周邊找間咖啡廳享用悠閒早餐", landmark: false },
+                    { time: "11:30", description: "搭乘南海電鐵 前往關西機場", landmark: false },
+                    { time: "13:30", description: "搭機返台，帶著滿滿回憶（和戰利品）回家！", landmark: false },
+                ] 
+            },
         ];
 
-        // SVG Icons
-        const Icon = ({ name, className }) => {
-            const icons = {
-                Plane: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 12h20"/><path d="M13 2l9 10-9 10"/><path d="M2 12l5-5m0 10l-5-5"/></svg>,
-                MapPin: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
-                Hotel: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10 22v-6.57"/><path d="M12 11h.01"/><path d="M12 7h.01"/><path d="M14 15.43V22"/><path d="M15 16a5 5 0 0 0-6 0"/><path d="M8 22v-6.57"/><path d="M9.6 11h.01"/><path d="M9.6 7h.01"/><path d="M4 11h.01"/><path d="M4 7h.01"/><path d="M20 11h.01"/><path d="M20 7h.01"/><path d="M3 22h18"/><path d="M16 11h.01"/><path d="M16 7h.01"/><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/></svg>,
-                Camera: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>,
-                Utensils: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>,
-                Train: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="16" height="16" x="4" y="3" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h0"/><path d="M16 15h0"/></svg>,
-                Shrine: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 21h18"/><path d="M5 21V7"/><path d="M19 21V7"/><path d="M2 7h20"/><path d="M12 3v18"/><path d="M4 12h16"/></svg>, 
-                Bus: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>,
-                Mountain: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>,
-                Ship: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.9 5.8 2.8 8"/><path d="M17.5 10l-9-5"/><path d="M12 21V4"/><path d="M8 2l4 4"/></svg>,
-                Home: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
-                Flower: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 7.5a4.5 4.5 0 1 1 4.5 4.5M12 7.5A4.5 4.5 0 1 0 7.5 12M12 7.5V9m-4.5 3a4.5 4.5 0 1 1 4.5-4.5M7.5 12A4.5 4.5 0 1 0 12 16.5M7.5 12H9m3 4.5a4.5 4.5 0 1 1-4.5-4.5M12 16.5A4.5 4.5 0 1 0 16.5 12M12 16.5V15m4.5-3a4.5 4.5 0 1 1-4.5 4.5M16.5 12A4.5 4.5 0 1 0 12 7.5M16.5 12H15"/></svg>,
-                Moon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>,
-                ShoppingBag: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>,
-                Package: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-9"/></svg>,
-                Flame: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.5-3.3.3-1.09.77-2.127 1.45-3.05a2.5 2.5 0 0 0 .55 2.85Z"/></svg>,
-                Coffee: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg>,
-                LogOut: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>,
-                ChevronDown: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 9 6 6 6-6"/></svg>,
-                ChevronUp: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m18 15-6-6-6 6"/></svg>,
-                Wallet: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>,
-                Trash: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
-                Plus: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+        // --- Gemini API Utilities for Exchange Rate and Landmark Info ---
+        
+        // General Gemini API Caller with Google Search grounding
+        const callGeminiApi = async (prompt, systemInstruction) => {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: {
+                    parts: [{ text: systemInstruction }]
+                },
             };
-            return icons[name] || icons['MapPin']; 
-        };
 
-        const WeatherWidget = ({ weather, temp }) => {
-            const WeatherIcon = ({type}) => {
-                if(type === 'Sunny') return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>;
-                if(type === 'Cloudy') return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M17.5 19c0-1.7-1.3-3-3-3h-11c-1.7 0-3 1.3-3 3s1.3 3 3 3h11c1.7 0 3-1.3 3-3Z"/><path d="M17.5 12a6.5 6.5 0 0 1 0 13h-11a6.5 6.5 0 0 1-0-13h.1a4.5 4.5 0 0 1 8.8 0h2.1Z"/></svg>;
-                if(type === 'Rain') return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>;
-                return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>;
-            }
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                try {
+                    const delay = Math.pow(2, i) * 1000;
+                    if (i > 0) await new Promise(resolve => setTimeout(resolve, delay));
 
-            const getBg = () => {
-                if (weather === 'Sunny') return 'bg-orange-100 text-orange-600 border-orange-200';
-                if (weather === 'Cloudy') return 'bg-slate-100 text-slate-600 border-slate-200';
-                if (weather === 'Rain') return 'bg-blue-100 text-blue-600 border-blue-200';
-                return 'bg-sky-100 text-sky-600 border-sky-200';
-            }
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
 
-            return (
-                <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm font-bold ${getBg()}`}>
-                    <WeatherIcon type={weather} />
-                    <span>{temp}</span>
-                </div>
-            )
-        }
+                    if (!response.ok) {
+                        if (response.status === 429 && i < MAX_RETRIES - 1) continue;
+                        throw new Error(`API call failed with status: ${response.status}`);
+                    }
 
-        const Countdown = () => {
-            const targetDate = new Date('2026-05-10T00:00:00');
-            const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+                    const result = await response.json();
+                    return result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'ERROR';
 
-            function calculateTimeLeft() {
-                const difference = +targetDate - +new Date();
-                let timeLeft = {};
-
-                if (difference > 0) {
-                    timeLeft = {
-                        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                    };
-                } else {
-                    timeLeft = { days: 0 };
+                } catch (error) {
+                    if (i === MAX_RETRIES - 1) {
+                        console.error("Gemini API call failed after multiple retries:", error);
+                        return "ERROR";
+                    }
                 }
-                return timeLeft;
             }
-
-            useEffect(() => {
-                const timer = setTimeout(() => {
-                    setTimeLeft(calculateTimeLeft());
-                }, 1000);
-                return () => clearTimeout(timer);
-            });
-
-            return (
-                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 mb-6 shadow-sm border border-rose-100 text-center">
-                    <p className="text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">距離出發還有</p>
-                    <p className="text-3xl font-black text-rose-600">
-                        {timeLeft.days} <span className="text-sm font-medium text-rose-400">天</span>
-                    </p>
-                </div>
-            );
+            return "ERROR";
+        };
+        
+        // Function to fetch Landmark information
+        const fetchLandmarkInfo = async (query) => {
+            const prompt = `以繁體中文，用一到兩句話簡述日本景點 ${query} 的特色。`;
+            const system = "你是一個旅遊嚮導。請根據景點名稱，提供簡潔、吸引人且適合旅遊手冊的景點介紹。只輸出簡介內容，不要加入任何標題或多餘的文字。";
+            return callGeminiApi(prompt, system);
         };
 
-        const EventCard = ({ event }) => {
-            const [isOpen, setIsOpen] = useState(false);
+        // --- Hook for Firebase Init and Auth ---
+        const useAuthAndFirebase = () => {
+            const [userId, setUserId] = useState(null);
+            const [isAuthReady, setIsAuthReady] = useState(false);
+            const [firebaseError, setFirebaseError] = useState(null);
 
-            return (
-                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-50 mt-1 hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-rose-50 text-rose-500 rounded-lg shrink-0">
-                            <Icon name={event.icon} className="w-5 h-5" />
-                        </div>
-                        <h3 className="font-bold text-gray-800">{event.title}</h3>
-                    </div>
-                    <p className="text-sm text-gray-500 leading-relaxed pl-[44px]">
-                        {event.desc}
-                    </p>
-                    
-                    {event.intro && (
-                        <div className="pl-[44px] mt-3">
-                            <button 
-                                onClick={() => setIsOpen(!isOpen)}
-                                className="flex items-center text-xs text-rose-500 font-bold hover:text-rose-600 transition-colors"
-                            >
-                                {isOpen ? '收起介紹' : '查看介紹'} 
-                                <Icon name={isOpen ? "ChevronUp" : "ChevronDown"} className="w-3 h-3 ml-1" />
-                            </button>
-                            
-                            {isOpen && (
-                                <div className="mt-2 p-3 bg-rose-50 rounded-lg text-xs text-gray-600 leading-relaxed animate-fade-in">
-                                    {event.intro}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        // Expense Tracker Component
-        const ExpenseTracker = ({ activeDay }) => {
-            // State for expenses (saved in localStorage)
-            const [expenses, setExpenses] = useState(() => {
-                const saved = localStorage.getItem('kansai_expenses');
-                return saved ? JSON.parse(saved) : {};
-            });
-
-            // Form State
-            const [item, setItem] = useState('');
-            const [price, setPrice] = useState('');
-            const [currency, setCurrency] = useState('JPY');
-            const [payer, setPayer] = useState('');
-
-            // Save to local storage whenever expenses change
             useEffect(() => {
-                localStorage.setItem('kansai_expenses', JSON.stringify(expenses));
-            }, [expenses]);
+                if (Object.keys(firebaseConfig).length === 0) {
+                    setFirebaseError("Firebase 配置缺失，資料無法儲存。");
+                    setIsAuthReady(true);
+                    return;
+                }
 
-            const handleAddExpense = (e) => {
-                e.preventDefault();
-                if (!item || !price || !payer) return;
+                try {
+                    appInstance = window.firebase.initializeApp(firebaseConfig);
+                    dbInstance = window.firebase.getFirestore(appInstance);
+                    authInstance = window.firebase.getAuth(appInstance);
+                } catch (e) {
+                    console.error("Firebase initialization failed:", e);
+                    setFirebaseError(`Firebase 初始化失敗: ${e.message}`);
+                    setIsAuthReady(true);
+                    return;
+                }
 
-                const amount = parseFloat(price);
-                const twdAmount = currency === 'JPY' ? Math.round(amount * EXCHANGE_RATE) : amount;
-
-                const newExpense = {
-                    id: Date.now(),
-                    item,
-                    price: amount,
-                    currency,
-                    twdAmount,
-                    payer
+                // Sign in logic
+                const attemptSignIn = async () => {
+                    try {
+                        if (initialAuthToken) {
+                            await window.firebase.signInWithCustomToken(authInstance, initialAuthToken);
+                        } else {
+                            await window.firebase.signInAnonymously(authInstance);
+                        }
+                    } catch (e) {
+                        console.error("Firebase Sign-in Failed:", e);
+                        setFirebaseError("認證失敗，您將以匿名模式運作。");
+                    }
                 };
-
-                const dayExpenses = expenses[activeDay] || [];
+                attemptSignIn();
                 
-                setExpenses({
-                    ...expenses,
-                    [activeDay]: [...dayExpenses, newExpense]
+                // Auth state listener
+                const unsubscribe = window.firebase.onAuthStateChanged(authInstance, (user) => {
+                    if (user) {
+                        setUserId(user.uid);
+                    } else {
+                        // Use a random UUID for anonymous/unauthenticated users
+                        setUserId(crypto.randomUUID());
+                    }
+                    setIsAuthReady(true);
                 });
 
-                // Reset form
-                setItem('');
-                setPrice('');
-            };
+                return () => unsubscribe();
+            }, []);
 
-            const handleDelete = (id) => {
-                if(confirm('確定要刪除這筆紀錄嗎？')) {
-                    const dayExpenses = expenses[activeDay].filter(ex => ex.id !== id);
-                    setExpenses({
-                        ...expenses,
-                        [activeDay]: dayExpenses
-                    });
-                }
-            }
+            return { userId, isAuthReady, firebaseError, db: dbInstance };
+        };
 
-            const currentDayExpenses = expenses[activeDay] || [];
-            const totalTWD = currentDayExpenses.reduce((acc, curr) => acc + curr.twdAmount, 0);
-
-            // Calculate total per person
-            const payerSummary = currentDayExpenses.reduce((acc, curr) => {
-                acc[curr.payer] = (acc[curr.payer] || 0) + curr.twdAmount;
-                return acc;
-            }, {});
-
-            return (
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-rose-100 mt-6">
-                    <div className="flex items-center gap-2 mb-4 text-rose-800 font-bold">
-                        <Icon name="Wallet" className="w-5 h-5" />
-                        <h2>Day {activeDay + 1} 記帳本</h2>
-                    </div>
-
-                    {/* Add Form */}
-                    <form onSubmit={handleAddExpense} className="space-y-3 mb-6 bg-rose-50 p-4 rounded-xl border border-rose-100">
-                        <div className="grid grid-cols-2 gap-2">
-                            <input 
-                                type="text" 
-                                placeholder="品項 (如: 章魚燒)" 
-                                value={item}
-                                onChange={e => setItem(e.target.value)}
-                                className="p-2 rounded-lg border border-rose-200 text-sm w-full focus:outline-none focus:border-rose-400"
-                            />
-                            <input 
-                                type="text" 
-                                placeholder="付款人 (如: 姊姊)" 
-                                value={payer}
-                                onChange={e => setPayer(e.target.value)}
-                                className="p-2 rounded-lg border border-rose-200 text-sm w-full focus:outline-none focus:border-rose-400"
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <input 
-                                type="number" 
-                                placeholder="金額" 
-                                value={price}
-                                onChange={e => setPrice(e.target.value)}
-                                className="p-2 rounded-lg border border-rose-200 text-sm flex-1 focus:outline-none focus:border-rose-400"
-                            />
-                            <select 
-                                value={currency} 
-                                onChange={e => setCurrency(e.target.value)}
-                                className="p-2 rounded-lg border border-rose-200 text-sm bg-white text-gray-700 focus:outline-none focus:border-rose-400 font-bold"
-                            >
-                                <option value="JPY">JPY ¥</option>
-                                <option value="TWD">TWD $</option>
-                            </select>
-                        </div>
-                        <button type="submit" className="w-full bg-rose-500 text-white py-2 rounded-lg font-bold text-sm hover:bg-rose-600 transition-colors flex justify-center items-center gap-2">
-                            <Icon name="Plus" className="w-4 h-4" /> 
-                            新增紀錄
-                        </button>
-                        {currency === 'JPY' && <p className="text-xs text-rose-400 text-center">自動匯率換算: 1 JPY = {EXCHANGE_RATE} TWD</p>}
-                    </form>
-
-                    {/* Expense List */}
-                    {currentDayExpenses.length > 0 ? (
-                        <div className="space-y-3">
-                            {currentDayExpenses.map(ex => (
-                                <div key={ex.id} className="flex justify-between items-center border-b border-dashed border-gray-100 pb-2">
-                                    <div>
-                                        <div className="font-bold text-gray-800 text-sm">{ex.item}</div>
-                                        <div className="text-xs text-gray-400">
-                                            <span className="bg-gray-100 px-1 rounded mr-1">{ex.payer}</span>
-                                            {ex.currency === 'JPY' ? `¥${ex.price}` : `$${ex.price}`}
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="font-bold text-rose-600 text-sm">
-                                            ${ex.twdAmount}
-                                        </div>
-                                        <button onClick={() => handleDelete(ex.id)} className="text-gray-300 hover:text-red-400">
-                                            <Icon name="Trash" className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                            
-                            {/* Summary */}
-                            <div className="pt-4 mt-2 border-t-2 border-rose-100">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="font-bold text-gray-600">當日總計</span>
-                                    <span className="font-black text-xl text-rose-600">${totalTWD}</span>
-                                </div>
-                                <div className="text-xs text-gray-500 space-y-1 bg-white p-2 rounded-lg">
-                                    <p className="font-bold text-rose-400 mb-1">付款統計(台幣):</p>
-                                    {Object.entries(payerSummary).map(([name, amount]) => (
-                                        <div key={name} className="flex justify-between">
-                                            <span>{name}</span>
-                                            <span>${amount}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="text-center text-gray-400 text-sm py-4">
-                            還沒有記帳喔！<br/>買了東西記得記下來 ~
-                        </div>
-                    )}
-                </div>
-            )
-        }
-
-        const App = () => {
-            const [activeDay, setActiveDay] = useState(0);
+        // Hook for Firestore Data
+        const useTripExpenses = (db, userId, isAuthReady) => {
+            const [expenses, setExpenses] = useState([]);
 
             useEffect(() => {
-                const el = document.getElementById(`day-btn-${activeDay}`);
-                if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                }
-            }, [activeDay]);
+                if (!db || !isAuthReady || !userId) return;
 
-            const currentDay = itineraryData[activeDay];
+                const COLLECTION_PATH = `/artifacts/${appId}/users/${userId}/${COLLECTION_NAME}`;
+                const userTripCollectionRef = window.firebase.collection(db, COLLECTION_PATH);
+                const q = window.firebase.query(userTripCollectionRef);
+
+                // Real-time listener
+                const unsubscribe = window.firebase.onSnapshot(q, (snapshot) => {
+                    const newExpenses = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data(),
+                        jpy: doc.data().jpy || 0,
+                        isDone: doc.data().isDone || false,
+                        payerName: doc.data().payerName || '未指定', 
+                        createdAt: doc.data().createdAt?.toDate() || new Date(),
+                    })).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+                    setExpenses(newExpenses);
+                }, (error) => {
+                    console.error("Error fetching trip data:", error);
+                });
+
+                return () => unsubscribe();
+            }, [db, userId, isAuthReady]);
+
+            return expenses;
+        };
+
+        // Component: LandmarkInfo (景點介紹查詢元件)
+        const LandmarkInfo = ({ query }) => {
+            const [info, setInfo] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                if (!query) return;
+
+                const getInfo = async () => {
+                    setLoading(true);
+                    setError(null);
+                    setInfo(null);
+                    const result = await fetchLandmarkInfo(query);
+                    if (result && result !== 'ERROR') {
+                        setInfo(result);
+                    } else {
+                        setError("無法找到景點介紹或網路錯誤。");
+                    }
+                    setLoading(false);
+                };
+                getInfo();
+            }, [query]);
+
+            if (loading) {
+                return (
+                    <div className="flex items-center text-sm text-rose-500 mt-2">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        正在查詢景點特色...
+                    </div>
+                );
+            }
+            
+            if (error) {
+                return <p className="text-xs text-red-500 mt-2">*{error}</p>;
+            }
+
+            if (info) {
+                return (
+                    <div className="mt-3 pt-3 border-t border-rose-100">
+                        <p className="text-xs font-bold text-rose-600 mb-1">【景點特色】</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">{info}</p>
+                    </div>
+                );
+            }
+
+            return null;
+        };
+        
+        // Component: EventCard (行程卡片)
+        const EventCard = ({ event }) => (
+            <div className="bg-white p-4 rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-[1.01] border border-rose-100">
+                <p className="text-sm font-semibold text-gray-800">{event.description}</p>
+                {event.landmark && event.query && <LandmarkInfo query={event.query} />}
+            </div>
+        );
+
+        // Component: ExpenseTracker (預算追蹤器)
+        const ExpenseTracker = ({ db, userId, rate, rateError, refreshRate, rateLoading }) => {
+            const [itemName, setItemName] = useState('');
+            const [jpyValue, setJpyValue] = useState('');
+            const [payerName, setPayerName] = useState('我');
+            
+            const expenses = useTripExpenses(db, userId, true); 
+            
+            const totalJPY = useMemo(() => expenses.reduce((sum, item) => sum + item.jpy, 0), [expenses]);
+            const totalTWD = totalJPY * rate;
+            
+            // --- CRUD Operations ---
+            const handleAddItem = async (e) => {
+                e.preventDefault();
+                const name = itemName.trim();
+                const payer = payerName.trim() || '未指定';
+                const jpy = parseFloat(jpyValue);
+
+                if (!db || !userId || name === '' || isNaN(jpy) || jpy <= 0) return;
+
+                try {
+                    const COLLECTION_PATH = `/artifacts/${appId}/users/${userId}/${COLLECTION_NAME}`;
+                    const userTripCollectionRef = window.firebase.collection(db, COLLECTION_PATH);
+                    await window.firebase.addDoc(userTripCollectionRef, {
+                        name: name,
+                        jpy: jpy,
+                        isDone: false,
+                        payerName: payer, 
+                        createdAt: window.firebase.Timestamp.now(),
+                    });
+                    setItemName('');
+                    setJpyValue('');
+                    setPayerName('我');
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                    alert(`新增項目失敗: ${e.message}`); 
+                }
+            };
+            
+            const handleToggleDone = async (id, isDone) => {
+                if (!db || !userId) return;
+                try {
+                    const COLLECTION_PATH = `/artifacts/${appId}/users/${userId}/${COLLECTION_NAME}`;
+                    const itemRef = window.firebase.doc(db, `${COLLECTION_PATH}/${id}`);
+                    await window.firebase.updateDoc(itemRef, { isDone: isDone });
+                } catch (e) {
+                    console.error("Error updating document: ", e);
+                }
+            };
+
+            const handleDeleteItem = async (id) => {
+                if (!db || !userId) return;
+                try {
+                    const COLLECTION_PATH = `/artifacts/${appId}/users/${userId}/${COLLECTION_NAME}`;
+                    const itemRef = window.firebase.doc(db, `${COLLECTION_PATH}/${id}`);
+                    await window.firebase.deleteDoc(itemRef);
+                } catch (e) {
+                    console.error("Error deleting document: ", e);
+                }
+            };
+            
+            // --- Export to CSV Function ---
+            const exportToCSV = () => {
+                if (expenses.length === 0) {
+                    alert('清單中沒有花費項目可供匯出！');
+                    return;
+                }
+
+                const headers = ["日期", "項目名稱", "支付人員", "日幣金額 (JPY)", "台幣金額 (TWD)", "是否完成", "建立時間"];
+                
+                // Function to escape string content for CSV
+                const escape = (str) => `"${String(str).replace(/"/g, '""')}"`;
+
+                const csvContent = expenses.map(item => {
+                    const twd = (item.jpy * rate).toFixed(2);
+                    const dateStr = new Date(item.createdAt).toLocaleDateString('zh-TW');
+                    const completed = item.isDone ? "是" : "否";
+                    
+                    return [
+                        escape(dateStr), 
+                        escape(item.name), 
+                        escape(item.payerName || '未指定'), 
+                        item.jpy, 
+                        twd, 
+                        completed,
+                        escape(new Date(item.createdAt).toLocaleString('zh-TW'))
+                    ].join(',');
+                }).join('\n');
+
+                // Add UTF-8 BOM for Chinese characters compatibility in Excel
+                const fullCSV = "\uFEFF" + headers.join(',') + '\n' + csvContent;
+
+                const blob = new Blob([fullCSV], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `關西姐妹淘花費明細_${new Date().toISOString().slice(0, 10)}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
 
             return (
-                <div className="max-w-md mx-auto min-h-screen bg-rose-50 pb-20 relative overflow-hidden">
-                    {/* Background decoration */}
-                    <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-rose-200 to-rose-50 -z-10"></div>
-                    <div className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-rose-300 rounded-full blur-3xl opacity-30"></div>
+                <div id="expense-tracker" className="bg-white p-6 rounded-3xl shadow-2xl mb-8">
+                    <h2 className="text-2xl font-bold text-rose-600 mb-4 flex items-center">
+                        <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3 .895-3 2 1.343 2 3 2m0-8V4m0 12v4m-6-3h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        旅費記帳本 (共 {expenses.length} 筆)
+                    </h2>
                     
+                    {/* Exchange Rate Status (即時匯率功能區) */}
+                    <div className="bg-indigo-50 p-4 rounded-xl mb-4 border border-indigo-200">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-indigo-600">即時匯率 (JPY → TWD)</h3>
+                            <button 
+                                onClick={refreshRate} 
+                                disabled={rateLoading}
+                                className={`text-sm px-3 py-1 rounded-full transition-colors ${rateLoading ? 'bg-gray-400' : 'bg-indigo-500 hover:bg-indigo-600'} text-white`}>
+                                {rateLoading ? '更新中...' : '刷新匯率'}
+                            </button>
+                        </div>
+                        <p className="text-2xl font-mono mt-2">
+                            1 JPY = <span className="text-green-600 font-extrabold">NT$ {rate.toFixed(4)}</span>
+                        </p>
+                        <p className={`text-xs mt-1 ${rateError ? 'text-red-500' : 'text-gray-500'}`}>
+                            {rateError || `匯率已更新至 ${new Date().toLocaleTimeString('zh-TW')}`}
+                        </p>
+                    </div>
+
+                    {/* Total Display */}
+                    <div className="bg-pink-500 text-white p-4 rounded-xl mb-6 shadow-inner">
+                        <p className="text-md font-semibold mb-1">總花費概估</p>
+                        <div className="flex justify-between items-baseline">
+                            <span className="text-4xl font-extrabold text-yellow-300">
+                                NT$ {totalTWD.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                            </span>
+                            <span className="text-lg font-bold">
+                                ¥ {totalJPY.toLocaleString('en-US')}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Add Item Form */}
+                    <form onSubmit={handleAddItem} className="space-y-3 p-4 bg-rose-50 rounded-xl mb-6 shadow-md border border-rose-200">
+                        <h3 className="text-lg font-bold text-gray-700">新增花費項目</h3>
+                        <input
+                            type="text"
+                            placeholder="項目名稱 (e.g. 和牛大餐)"
+                            className="w-full p-3 border border-rose-300 rounded-lg focus:ring-rose-500 focus:border-rose-500 text-sm"
+                            value={itemName}
+                            onChange={(e) => setItemName(e.target.value)}
+                            required
+                        />
+                        <div className="grid grid-cols-2 gap-3">
+                            <input
+                                type="text"
+                                placeholder="支付人員 (e.g. 雅雅)"
+                                className="w-full p-3 border border-rose-300 rounded-lg focus:ring-rose-500 focus:border-rose-500 text-sm"
+                                value={payerName}
+                                onChange={(e) => setPayerName(e.target.value)}
+                                required
+                            />
+                            <input
+                                type="number"
+                                placeholder="日幣金額 (JPY)"
+                                className="w-full p-3 border border-rose-300 rounded-lg focus:ring-rose-500 focus:border-rose-500 text-sm"
+                                value={jpyValue}
+                                onChange={(e) => setJpyValue(e.target.value)}
+                                min="1"
+                                required
+                            />
+                        </div>
+                        <button type="submit" className="w-full p-3 bg-rose-500 text-white font-semibold rounded-lg shadow-md hover:bg-rose-600 transition duration-150 transform hover:scale-[1.01]">
+                            <span className="flex items-center justify-center">
+                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                加入花費
+                            </span>
+                        </button>
+                    </form>
+                    
+                    {/* Export Button */}
+                    <div className="flex justify-end mb-4">
+                        <button 
+                            onClick={exportToCSV}
+                            className="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-150 transform hover:scale-[1.01] text-sm">
+                            <span className="flex items-center">
+                                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                匯出 Excel (CSV)
+                            </span>
+                        </button>
+                    </div>
+
+                    {/* Expense List */}
+                    <ul className="space-y-3 hide-scrollbar max-h-96 overflow-y-auto">
+                        {expenses.length === 0 ? (
+                            <p className="text-gray-500 p-4 text-center bg-gray-50 rounded-lg shadow-inner">清單是空的！</p>
+                        ) : (
+                            expenses.map(item => (
+                                <li key={item.id} className={`flex items-center justify-between p-3 rounded-xl shadow-sm transition-all border ${item.isDone ? 'bg-gray-100 opacity-70 border-gray-300 line-through' : 'bg-white border-rose-100 hover:shadow-md'}`}>
+                                    <div className="flex items-center flex-grow">
+                                        <input
+                                            type="checkbox"
+                                            className="toggle-checkbox h-5 w-5 text-rose-600 rounded border-gray-300 focus:ring-rose-500 cursor-pointer"
+                                            checked={item.isDone}
+                                            onChange={(e) => handleToggleDone(item.id, e.target.checked)}
+                                        />
+                                        <div className="ml-3 flex-1">
+                                            <p className={`text-base font-semibold text-gray-800 ${item.isDone ? 'text-gray-500' : ''}`}>{item.name}</p>
+                                            <p className="text-xs text-gray-500">
+                                                支付者: <span className="font-bold text-indigo-500">{item.payerName}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right ml-4 flex-shrink-0">
+                                        <p className="text-lg font-extrabold text-red-600">
+                                            NT$ {(item.jpy * rate).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                        </p>
+                                        <p className="text-xs font-mono text-gray-500">
+                                            ¥ {item.jpy.toLocaleString('en-US')}
+                                        </p>
+                                    </div>
+                                    <button 
+                                        onClick={() => handleDeleteItem(item.id)} 
+                                        className="ml-3 p-1 text-red-500 hover:bg-red-100 rounded-full transition-colors"
+                                        aria-label="刪除項目">
+                                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm6 3a1 1 0 100 2h-4a1 1 0 100-2h4z" clipRule="evenodd"></path></svg>
+                                    </button>
+                                </li>
+                            ))
+                        )}
+                    </ul>
+                </div>
+            );
+        };
+        
+        // Component: App (Main Layout)
+        const App = () => {
+            const [activeDay, setActiveDay] = useState(tripData[0].day);
+            const { userId, isAuthReady, firebaseError, db } = useAuthAndFirebase();
+            
+            // State for Exchange Rate
+            const [exchangeRate, setExchangeRate] = useState(DEFAULT_JPY_TO_TWD_RATE);
+            const [rateError, setRateError] = useState(null);
+            const [rateLoading, setRateLoading] = useState(false);
+
+            const findRate = async () => {
+                const ratePrompt = "Get the current JPY to TWD exchange rate.";
+                const rateSystem = "You are a specialized currency assistant. Your only job is to find the JPY to TWD exchange rate and output only the numerical value of the rate, with no text explanation, no currency symbols, and no formatting (e.g., 0.2154). If you cannot find a current rate, respond with 'ERROR'.";
+
+                const rateText = await callGeminiApi(ratePrompt, rateSystem);
+                const numericalRate = parseFloat(rateText);
+
+                if (!isNaN(numericalRate) && numericalRate > 0.05 && numericalRate < 0.5) { 
+                    setExchangeRate(numericalRate);
+                    setRateError(null);
+                } else {
+                    setExchangeRate(DEFAULT_JPY_TO_TWD_RATE);
+                    setRateError(`無法取得最新匯率，使用預設值 ${DEFAULT_JPY_TO_TWD_RATE}`);
+                }
+            };
+            
+            const refreshRate = useCallback(async () => {
+                setRateLoading(true);
+                await findRate();
+                setRateLoading(false);
+            }, []);
+
+            useEffect(() => {
+                refreshRate();
+            }, [refreshRate]);
+
+
+            // Find the active day's data
+            const currentDay = tripData.find(d => d.day === activeDay);
+
+            if (!isAuthReady) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center bg-rose-50">
+                        <div className="text-xl font-semibold text-rose-600 animate-pulse p-4 rounded-lg bg-white shadow-lg">
+                            正在初始化... (讀取使用者資料與 Firebase)
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-xl mx-auto min-h-screen pb-4">
                     {/* Header */}
-                    <header className="px-6 pt-10 pb-4">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h1 className="text-2xl font-black text-rose-900 leading-tight">關西姊妹淘<br/>七日悠閒之旅</h1>
-                                <p className="text-rose-700 text-sm mt-1 font-medium">2026.05.10 - 05.16</p>
+                    <header className="py-6 px-4 bg-white shadow-lg sticky top-0 z-20 rounded-b-3xl mb-4">
+                        <h1 className="text-3xl font-extrabold text-pink-700">
+                            🌸 關西姊妹淘七日悠閒之旅
+                        </h1>
+                        <p className="text-sm text-gray-500 mt-1">
+                            2026年 5月10日 (六) ～ 5月16日 (五)
+                        </p>
+                        <p className="text-xs text-gray-400 mt-2 truncate">
+                             <span className="font-bold">使用者 ID:</span> {userId || '匿名使用者'}
+                        </p>
+                        {firebaseError && (
+                            <div className="mt-2 text-xs text-red-700 bg-red-100 p-2 rounded">
+                                <span className="font-bold">資料庫錯誤:</span> {firebaseError}
                             </div>
-                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-rose-100 overflow-hidden">
-                                <span className="text-2xl">🐶</span>
-                            </div>
-                        </div>
-
-                        <Countdown />
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center text-rose-800 font-bold">
-                                <Icon name="MapPin" className="w-4 h-4 mr-1" />
-                                {currentDay.location}
-                            </div>
-                            <WeatherWidget weather={currentDay.weather} temp={currentDay.temp} />
-                        </div>
+                        )}
                     </header>
 
-                    {/* Day Selector */}
-                    <div className="sticky top-0 bg-rose-50/95 backdrop-blur-md z-20 py-2 border-b border-rose-100">
-                        <div className="flex overflow-x-auto px-6 gap-3 hide-scrollbar pb-2">
-                            {itineraryData.map((day, index) => (
+                    <main className="px-4 space-y-8">
+                        
+                        {/* Trip Introduction */}
+                        <div className="bg-white p-6 rounded-3xl shadow-2xl border border-pink-200">
+                            <h2 className="text-2xl font-bold text-pink-600 mb-3 flex items-center">
+                                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                行程總覽 (簡介)
+                            </h2>
+                            <p className="text-gray-700 leading-relaxed text-sm">{TRIP_SUMMARY}</p>
+                            <p className="mt-3 text-xs text-gray-500 italic">住宿：全程連住東橫INN 大阪難波西（或難波周邊飯店）</p>
+                        </div>
+
+                        {/* Day Tabs */}
+                        <div className="hide-scrollbar overflow-x-auto whitespace-nowrap py-3 sticky top-24 bg-rose-50 z-10 -mx-4 px-4 shadow-inner">
+                            {tripData.map(day => (
                                 <button
-                                    key={index}
-                                    id={`day-btn-${index}`}
-                                    onClick={() => setActiveDay(index)}
-                                    className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-16 rounded-2xl transition-all duration-300 ${
-                                        activeDay === index 
-                                        ? 'bg-rose-500 text-white shadow-lg scale-105' 
-                                        : 'bg-white text-rose-400 border border-rose-100'
+                                    key={day.day}
+                                    onClick={() => setActiveDay(day.day)}
+                                    className={`inline-block px-4 py-2 mx-1 rounded-full text-sm font-semibold transition-all shadow-md transform hover:scale-[1.05] ${
+                                        day.day === activeDay 
+                                            ? 'bg-rose-500 text-white shadow-rose-400/50' 
+                                            : 'bg-white text-rose-600 border border-rose-200 hover:bg-rose-100'
                                     }`}
                                 >
-                                    <span className="text-xs font-medium">Day</span>
-                                    <span className="text-lg font-bold">{day.day}</span>
+                                    Day {day.day}
                                 </button>
                             ))}
                         </div>
-                    </div>
 
-                    {/* Main Content */}
-                    <main className="px-6 py-6 space-y-6">
-                        
-                        {/* Day Header */}
-                        <div className="bg-white rounded-3xl p-6 shadow-sm border border-rose-100 animate-fade-in">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">{currentDay.title}</h2>
-                            <div className="flex items-center text-gray-500 text-sm mb-4">
-                                <Icon name="Hotel" className="w-4 h-4 mr-2" />
-                                <span>宿：{currentDay.stay}</span>
-                            </div>
+                        {/* Current Day Itinerary */}
+                        <div key={activeDay} className="fade-in bg-white p-6 rounded-3xl shadow-2xl">
+                            <h2 className="text-3xl font-bold text-gray-800 mb-2">{currentDay.title}</h2>
+                            <p className="text-md font-semibold text-rose-500 mb-4">
+                                {currentDay.date} @ {currentDay.location}
+                            </p>
                             
+                            {/* Weather Card */}
+                            <div className="flex items-center bg-indigo-50 p-3 rounded-xl mb-6 shadow-inner border border-indigo-200">
+                                <svg className="w-6 h-6 text-indigo-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                <span className="text-sm font-medium text-indigo-800">天氣預報 (模擬): {currentDay.weather}</span>
+                            </div>
+
                             {/* Timeline */}
                             <div className="relative border-l-2 border-rose-100 ml-3 space-y-8 my-6">
                                 {currentDay.events.map((event, idx) => (
                                     <div key={idx} className="relative pl-8">
-                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-rose-500 border-4 border-rose-100"></div>
-                                        <span className="inline-block px-2 py-0.5 rounded bg-rose-100 text-rose-600 text-xs font-bold mb-1">
+                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-rose-500 border-4 border-rose-100 shadow-lg"></div>
+                                        <span className="inline-block px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-xs font-bold mb-1 shadow-sm">
                                             {event.time}
                                         </span>
+                                        {/* EventCard 包含了景點介紹的子元件 LandmarkInfo */}
                                         <EventCard event={event} />
                                     </div>
                                 ))}
@@ -545,12 +700,19 @@
                         </div>
 
                         {/* Expense Tracker Section */}
-                        <ExpenseTracker activeDay={activeDay} />
+                        <ExpenseTracker 
+                            db={db} 
+                            userId={userId} 
+                            rate={exchangeRate} 
+                            rateError={rateError} 
+                            refreshRate={refreshRate}
+                            rateLoading={rateLoading}
+                        />
 
                         {/* Footer */}
                         <div className="text-center text-rose-300 text-xs pb-10">
                             Made with ❤️ for Sisters Trip 2026
-                            <br/>Weather forecast is simulated based on historical data.
+                            <br/>模擬天氣數據僅供參考，景點資訊與即時匯率由網路查詢提供。
                         </div>
 
                     </main>
@@ -558,10 +720,10 @@
             );
         };
 
+        // Render the App
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
 </body>
 </html>
-
 
