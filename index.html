@@ -43,14 +43,13 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useCallback, useMemo } = React;
 
         // --- 匯率配置 ---
-        // 這是預設的匯率，使用者可以自行修改
         const DEFAULT_RATE = 0.2150; 
         // ----------------
 
-        // 雖然不再使用 API，但仍保留環境變數初始化結構
+        // Firebase/環境變數初始化 (保持強健的解析邏輯)
         let firebaseConfig = null;
         if (typeof __firebase_config !== 'undefined') {
             try {
@@ -63,15 +62,16 @@
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         // --------------------------------------------------------
 
-
         /**
          * 關西七日悠閒之旅 行程表 (Day 1 - Day 7)
+         * 包含模擬的每日天氣預報。
          */
         const initialItinerary = [
             {
                 day: 1,
                 date: "星期六 (5/10)",
-                theme: "抵達與難波八阪神社⛩️",
+                theme: "抵達與震撼獅子頭",
+                weather: { temp: "18°C / 25°C", icon: "☀️", condition: "晴朗，舒適" },
                 events: [
                     { time: "08:55", name: "飛機抵達關西機場", description: "08:55-12:30：飛機抵達關西機場，準備入境。", location: "KIX" },
                     { time: "13:30", name: "搭乘南海電鐵 Rapi:t", description: "直達難波站。", location: "難波" },
@@ -84,6 +84,7 @@
                 day: 2,
                 date: "星期日 (5/11)",
                 theme: "京都經典：千本鳥居 & 清水舞台",
+                weather: { temp: "17°C / 23°C", icon: "🌤️", condition: "多雲，偶爾有陽光" },
                 events: [
                     { time: "09:00", name: "從難波出發前往京都", description: "搭乘 JR 或其他交通工具前往京都。", location: "京都" },
                     { time: "10:00", name: "伏見稻荷大社 ⛩️", description: "走進綿延不絕的紅色千本鳥居隧道。", location: "伏見稻荷" },
@@ -97,6 +98,7 @@
                 day: 3,
                 date: "星期一 (5/12)",
                 theme: "海之京都：天橋立 & 伊根舟屋 (跟團)",
+                weather: { temp: "15°C / 20°C", icon: "🌧️", condition: "有陣雨，氣溫稍涼" },
                 events: [
                     { time: "07:20", name: "難波集合 (跟團)", description: "難波集合 (OCAT 或 VIP Villa，視報名的團而定)。", location: "難波集合點" },
                     { time: "上午", name: "天橋立 🚠", description: "搭纜車上「飛龍觀」，彎腰從跨下看飛龍在天的絕景。", location: "天橋立" },
@@ -109,6 +111,7 @@
                 day: 4,
                 date: "星期二 (5/13)",
                 theme: "神戶優雅行：花園與夜景",
+                weather: { temp: "19°C / 26°C", icon: "☀️", condition: "晴朗，適合戶外活動" },
                 events: [
                     { time: "10:00", name: "前往神戶三宮", description: "搭阪神電車前往神戶三宮。", location: "神戶三宮" },
                     { time: "10:30", name: "神戶布引香草園 🌸", description: "搭乘夢幻空中纜車上山，看海景、聞花香，非常療癒。", location: "神戶" },
@@ -121,6 +124,7 @@
                 day: 5,
                 date: "星期三 (5/14)",
                 theme: "旗艦購物 & 黑毛和牛之夜",
+                weather: { temp: "20°C / 28°C", icon: "🌥️", condition: "局部多雲，白天炎熱" },
                 events: [
                     { time: "11:00", name: "梅田商圈 (Grand Front Osaka) 🛍️", description: "目標：【無印良品 關西旗艦店】 (北館 4F)，關西最大間！", location: "梅田" },
                     { time: "15:30", name: "戰利品拿回難波飯店放", description: "先把戰利品拿回難波飯店放，減輕負重。", location: "難波" },
@@ -132,6 +136,7 @@
                 day: 6,
                 date: "星期四 (5/15)",
                 theme: "老大阪風情：市場與通天閣",
+                weather: { temp: "16°C / 22°C", icon: "🌦️", condition: "陰天轉陣雨" },
                 events: [
                     { time: "10:00", name: "黑門市場 🦀 (早午餐)", description: "現烤扇貝、海膽、神戶牛串燒、水果大福。", location: "黑門市場" },
                     { time: "12:30", name: "千日前道具街 🍳", description: "看看超逼真的食物模型、日本製的精緻廚具。", location: "千日前" },
@@ -144,6 +149,7 @@
                 day: 7,
                 date: "星期五 (5/16)",
                 theme: "收心回家",
+                weather: { temp: "18°C / 24°C", icon: "🌤️", condition: "多雲，舒適，適合搭機" },
                 events: [
                     { time: "09:30", name: "退房與行李寄放", description: "退房，行李可寄放飯店或拉至車站寄放。", location: "難波" },
                     { time: "10:00", name: "悠閒早餐", description: "難波周邊找間咖啡廳享用悠閒早餐。", location: "難波" },
@@ -194,35 +200,27 @@
         );
 
         // --- Currency Converter Component (Manual Mode) ---
-
         const CurrencyConverter = () => {
-            // 1. 手動設定的匯率 (1 JPY = ? TWD)
             const [manualRate, setManualRate] = useState(DEFAULT_RATE);
-            // 2. 日幣金額輸入
             const [jpyAmount, setJpyAmount] = useState(10000);
             
-            // 處理匯率輸入變化
             const handleRateChange = (e) => {
                 const value = e.target.value;
-                // 允許空字串或數字
                 if (value === '' || !isNaN(parseFloat(value))) {
                     setManualRate(value);
                 }
             };
             
-            // 處理日幣金額輸入變化
             const handleJpyAmountChange = (e) => {
                 setJpyAmount(e.target.value);
             };
 
-            // 計算換算結果
             const convertedTwd = useMemo(() => {
                 const rate = parseFloat(manualRate);
                 const amount = parseFloat(jpyAmount);
 
-                // 檢查是否有有效數字
                 if (rate > 0 && !isNaN(amount) && amount >= 0) {
-                    // 保持四位小數，並使用逗號格式化
+                    // 使用逗號格式化，並保持四位小數
                     return (amount * rate).toFixed(4).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 }
                 return '0.0000';
@@ -236,7 +234,6 @@
                         </h2>
                     </div>
 
-                    {/* 匯率設定區 */}
                     <div className="mb-4 p-3 bg-pink-50 rounded-lg border border-pink-200">
                         <label className="block text-sm font-medium text-pink-700 mb-1">
                             1 JPY 兌換 TWD 匯率 (可編輯)
@@ -259,7 +256,6 @@
                         </p>
                     </div>
 
-                    {/* 金額轉換區 */}
                     <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
                         {/* JPY Input */}
                         <div className="flex items-center w-full sm:w-1/2">
@@ -291,15 +287,15 @@
 
 
         // --- Main App Component ---
-
         const App = () => {
             const [activeDay, setActiveDay] = useState(initialItinerary[0].day);
             
+            // 根據選中的 Day 找出對應的行程資料
             const currentDay = initialItinerary.find(d => d.day === activeDay);
 
             return (
                 <div className="min-h-screen">
-                    <Header title="關西七日悠閒之旅" />
+                    <Header title="關西姊妹淘七日悠閒之旅 (每日天氣/匯率版)" />
 
                     <DaySelector 
                         days={initialItinerary} 
@@ -312,30 +308,43 @@
                         {/* 1. Currency Converter (Manual Mode) */}
                         <CurrencyConverter />
                         
-                        {/* 2. Itinerary Details */}
-                        <div className="bg-white p-4 rounded-2xl shadow-xl mb-6 animate-fade-in">
-                            <h2 className="text-2xl font-bold text-rose-700 mb-2">
-                                Day {currentDay.day}: {currentDay.theme}
-                            </h2>
-                            <p className="text-sm text-gray-500 mb-4">{currentDay.date}</p>
-
-                            {/* Timeline */}
-                            <div className="relative border-l-2 border-rose-100 ml-3 space-y-8 my-6">
-                                {currentDay.events.map((event, idx) => (
-                                    <div key={idx} className="relative pl-8">
-                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-rose-500 border-4 border-rose-100"></div>
-                                        <span className="inline-block px-2 py-0.5 rounded bg-rose-100 text-rose-600 text-xs font-bold mb-1 shadow-sm">
-                                            {event.time}
-                                        </span>
-                                        <EventCard event={event} />
+                        {/* 2. Itinerary Details - 整合每日天氣到標題 */}
+                        {currentDay && (
+                            <div className="bg-white p-4 rounded-2xl shadow-xl mb-6 animate-fade-in border-t-4 border-rose-500">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 pb-2 border-b border-rose-100">
+                                    {/* 左側: Day & Theme */}
+                                    <h2 className="text-2xl font-bold text-rose-700">
+                                        Day {currentDay.day}: {currentDay.theme}
+                                    </h2>
+                                    
+                                    {/* 右側: 每日天氣 */}
+                                    <div className="mt-2 sm:mt-0 flex items-center text-lg font-semibold text-blue-600 bg-blue-50/70 px-3 py-1 rounded-full shadow-sm">
+                                        <span className="text-2xl mr-2">{currentDay.weather.icon}</span> 
+                                        {currentDay.weather.temp}
                                     </div>
-                                ))}
+                                </div>
+
+                                <p className="text-sm text-gray-500 mb-4">{currentDay.date} / {currentDay.weather.condition}</p>
+
+                                {/* Timeline */}
+                                <div className="relative border-l-2 border-rose-100 ml-3 space-y-8 my-6">
+                                    {currentDay.events.map((event, idx) => (
+                                        <div key={idx} className="relative pl-8">
+                                            <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-rose-500 border-4 border-rose-100"></div>
+                                            <span className="inline-block px-2 py-0.5 rounded bg-rose-100 text-rose-600 text-xs font-bold mb-1 shadow-sm">
+                                                {event.time}
+                                            </span>
+                                            <EventCard event={event} />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Footer */}
                         <div className="text-center text-rose-300 text-xs pb-10">
                             Made with ❤️ for Sisters Trip 2026
+                            <br/>每日天氣為模擬預報數據，僅供參考。
                         </div>
 
 
@@ -351,4 +360,3 @@
     </script>
 </body>
 </html>
-
