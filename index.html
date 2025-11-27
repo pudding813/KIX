@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>京阪神七日悠閒之旅</title>
+    <title>關西姊妹淘七日悠閒之旅</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -45,7 +45,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // 行程資料
+        // 行程資料 (新增 intro 欄位)
         const itineraryData = [
             {
                 day: 1,
@@ -53,14 +53,43 @@
                 location: "大阪難波",
                 weather: "Sunny", 
                 temp: "18°C - 24°C",
-                title: "大阪初見 & 八阪神社",
+                title: "大阪初見 & 獅子頭",
                 stay: "東橫INN 大阪難波西",
                 events: [
-                    { time: "08:55", icon: "Plane", title: "飛機起飛", desc: "帶著好心情出發！(桃園 -> 關西)" },
-                    { time: "12:30", icon: "MapPin", title: "抵達關西機場", desc: "入境後搭乘南海電鐵 Rapi:t 直奔難波" },
-                    { time: "15:00", icon: "Hotel", title: "飯店 Check-in", desc: "東橫INN 放行李、補妝、稍作休息" },
-                    { time: "16:00", icon: "Camera", title: "難波八阪神社 🦁", desc: "必拍巨大獅子頭！吸厄運招勝運" },
-                    { time: "18:00", icon: "Utensils", title: "道頓堀 & 心齋橋", desc: "晚餐：一蘭拉麵或章魚燒，跟跑跑人合照" }
+                    { 
+                        time: "08:55", 
+                        icon: "Plane", 
+                        title: "飛機起飛", 
+                        desc: "帶著好心情出發！(桃園 -> 關西)",
+                        intro: "記得提早 2 小時抵達機場辦理登機，護照要隨身攜帶喔！"
+                    },
+                    { 
+                        time: "12:30", 
+                        icon: "MapPin", 
+                        title: "抵達關西機場", 
+                        desc: "入境後搭乘南海電鐵 Rapi:t 直奔難波",
+                        intro: "入境後跟著「鐵道」指標走，搭乘藍色的南海電鐵特急 Rapi:t，約 38 分鐘就能舒適抵達難波站，不用轉車超方便！"
+                    },
+                    { 
+                        time: "15:00", 
+                        icon: "Hotel", 
+                        title: "飯店 Check-in", 
+                        desc: "東橫INN 放行李、補妝、稍作休息" 
+                    },
+                    { 
+                        time: "16:00", 
+                        icon: "Camera", 
+                        title: "難波八阪神社 🦁", 
+                        desc: "必拍巨大獅子頭！吸厄運招勝運",
+                        intro: "這裡有高達 12 公尺的巨大獅子殿！張開的獅子大口據說能將厄運吸進去，並招來好運（勝運）。這裡是大阪超人氣的打卡點，非常壯觀，一定要跟獅子頭合照一張！"
+                    },
+                    { 
+                        time: "18:00", 
+                        icon: "Utensils", 
+                        title: "道頓堀 & 心齋橋", 
+                        desc: "晚餐：一蘭拉麵或章魚燒，跟跑跑人合照",
+                        intro: "大阪最熱鬧的地方！一定要跟運河旁的「固力果跑跑人」看板合照。晚餐推薦吃一蘭拉麵、章魚燒（本家大特古），或者試試看元祖炸串。藥妝店也超級多，可以先比價！"
+                    }
                 ]
             },
             {
@@ -73,9 +102,27 @@
                 stay: "東橫INN 大阪難波西",
                 events: [
                     { time: "09:00", icon: "Train", title: "前往京都", desc: "從難波出發" },
-                    { time: "10:00", icon: "Shrine", title: "伏見稻荷大社 ⛩️", desc: "千本鳥居隧道，紅色視覺震撼" },
-                    { time: "12:00", icon: "Utensils", title: "錦市場午餐", desc: "京都的廚房：豆乳甜甜圈、三木雞卵" },
-                    { time: "14:00", icon: "Camera", title: "清水寺 & 二三年坂", desc: "清水舞台、音羽瀑布，星巴克榻榻米茶屋下午茶" },
+                    { 
+                        time: "10:00", 
+                        icon: "Shrine", 
+                        title: "伏見稻荷大社 ⛩️", 
+                        desc: "千本鳥居隧道，紅色視覺震撼",
+                        intro: "電影《藝伎回憶錄》的拍攝場景。綿延不絕的朱紅色「千本鳥居」隧道非常夢幻，是京都代表性的景觀。建議往山上走一點，人潮會比較少，比較好拍照喔！"
+                    },
+                    { 
+                        time: "12:00", 
+                        icon: "Utensils", 
+                        title: "錦市場午餐", 
+                        desc: "京都的廚房：豆乳甜甜圈、三木雞卵",
+                        intro: "有 400 年歷史的市場，被稱為「京都的廚房」。必吃美食：豆乳甜甜圈（小小一顆超順口）、三木雞卵（高湯玉子燒）、還有各式各樣的炸魚板和漬物。"
+                    },
+                    { 
+                        time: "14:00", 
+                        icon: "Camera", 
+                        title: "清水寺 & 二三年坂", 
+                        desc: "清水舞台、音羽瀑布，下午茶",
+                        intro: "世界文化遺產，著名的「清水舞台」由 139 根巨木懸空支撐，沒用一根釘子！參拜完可以去「音羽瀑布」喝水祈福（學業、戀愛、長壽）。回程順著二三年坂走，有非常多京都風情的古老小店，還有榻榻米星巴克可以休息。"
+                    },
                     { time: "19:00", icon: "Train", title: "返回大阪", desc: "回到難波享用晚餐" }
                 ]
             },
@@ -89,8 +136,20 @@
                 stay: "東橫INN 大阪難波西",
                 events: [
                     { time: "07:20", icon: "Bus", title: "難波集合", desc: "參加一日遊團 (OCAT或VIP Villa)" },
-                    { time: "上午", icon: "Mountain", title: "天橋立 飛龍觀 🚠", desc: "搭纜車，「股見」看飛龍在天絕景" },
-                    { time: "下午", icon: "Ship", title: "伊根舟屋遊船 🛥️", desc: "欣賞水上屋，買蝦味先餵海鷗" },
+                    { 
+                        time: "上午", 
+                        icon: "Mountain", 
+                        title: "天橋立 飛龍觀 🚠", 
+                        desc: "搭纜車，「股見」看飛龍在天絕景",
+                        intro: "日本三景之一！搭纜車上山後，一定要試試「股見」（彎腰從兩腿之間看），原本的沙洲會看起來像一條飛龍在天上飛舞，非常神奇！"
+                    },
+                    { 
+                        time: "下午", 
+                        icon: "Ship", 
+                        title: "伊根舟屋遊船 🛥️", 
+                        desc: "欣賞水上屋，買蝦味先餵海鷗",
+                        intro: "被稱為「日本威尼斯」的小漁村。舟屋的一樓是船庫，二樓是住家，看起來就像房子浮在水面上。搭遊覽船時可以買包蝦味先，海鷗和老鷹會飛過來搶食，超級好玩（但也超刺激）！"
+                    },
                     { time: "18:30", icon: "Home", title: "返回難波解散", desc: "晚餐買便利商店或吉野家，早點休息" }
                 ]
             },
@@ -104,9 +163,27 @@
                 stay: "東橫INN 大阪難波西",
                 events: [
                     { time: "10:00", icon: "Train", title: "前往神戶三宮", desc: "搭乘阪神電車" },
-                    { time: "10:30", icon: "Flower", title: "神戶布引香草園 🌸", desc: "夢幻空中纜車，看海景聞花香" },
-                    { time: "14:00", icon: "Home", title: "北野異人館街", desc: "風見雞之館、萌黃之館" },
-                    { time: "16:00", icon: "Moon", title: "神戶港 Mosaic", desc: "百萬夜景、神戶塔點燈、麵包超人博物館外觀" }
+                    { 
+                        time: "10:30", 
+                        icon: "Flower", 
+                        title: "神戶布引香草園 🌸", 
+                        desc: "夢幻空中纜車，看海景聞花香",
+                        intro: "搭乘復古車廂的空中纜車上山，沿途可以俯瞰神戶市區和大海。山頂是全日本最大的香草園，四季都有不同的花卉盛開，充滿歐洲度假風情，很適合拍美照！"
+                    },
+                    { 
+                        time: "14:00", 
+                        icon: "Home", 
+                        title: "北野異人館街", 
+                        desc: "風見雞之館、萌黃之館",
+                        intro: "以前外國商人居住的區域，保留了許多西洋風格的洋房。最有名的是屋頂有隻雞的「風見雞之館」和淡綠色的「萌黃之館」。這裡的星巴克也是古蹟改建的，非常有氣氛。"
+                    },
+                    { 
+                        time: "16:00", 
+                        icon: "Moon", 
+                        title: "神戶港 Mosaic", 
+                        desc: "百萬夜景、神戶塔點燈、麵包超人博物館外觀",
+                        intro: "神戶最浪漫的地方！可以在 Mosaic 廣場逛街吃飯，欣賞紅色的神戶塔和海洋博物館。晚上的夜景被譽為千萬美元夜景，氣氛極佳。"
+                    }
                 ]
             },
             {
@@ -118,10 +195,22 @@
                 title: "旗艦購物 & 和牛之夜",
                 stay: "東橫INN 大阪難波西",
                 events: [
-                    { time: "11:00", icon: "ShoppingBag", title: "梅田 Grand Front", desc: "無印良品關西旗艦店 (北館4F) 大逛特逛" },
+                    { 
+                        time: "11:00", 
+                        icon: "ShoppingBag", 
+                        title: "梅田 Grand Front", 
+                        desc: "無印良品關西旗艦店 (北館4F) 大逛特逛",
+                        intro: "這裡有關西最大的無印良品旗艦店，不但商品最齊全，還有 IDÉE 家具展示和 Cafe&Meal MUJI。梅田區百貨林立，是購物狂的天堂！"
+                    },
                     { time: "15:30", icon: "Package", title: "戰利品放飯店", desc: "先把東西拿回難波放" },
                     { time: "16:30", icon: "ShoppingBag", title: "心齋橋補貨", desc: "藥妝、Uniqlo 最後衝刺" },
-                    { time: "19:30", icon: "Flame", title: "黑毛和牛大餐 🥩", desc: "已預約！(松阪牛燒肉M 或 力丸)" }
+                    { 
+                        time: "19:30", 
+                        icon: "Flame", 
+                        title: "黑毛和牛大餐 🥩", 
+                        desc: "已預約！(松阪牛燒肉M 或 力丸)",
+                        intro: "本次旅程的重頭戲！享受入口即化的黑毛和牛。如果是去「松阪牛燒肉 M」，可以品嚐到頂級的松阪牛部位；如果是「力丸」，則是可以豪邁地吃到飽！記得要空腹來喔！"
+                    }
                 ]
             },
             {
@@ -133,9 +222,27 @@
                 title: "老大阪風情 & 市場",
                 stay: "東橫INN 大阪難波西",
                 events: [
-                    { time: "10:00", icon: "Utensils", title: "黑門市場早午餐 🦀", desc: "現烤扇貝、海膽、水果大福" },
-                    { time: "12:30", icon: "Coffee", title: "千日前道具街", desc: "看逼真食物模型、精緻廚具" },
-                    { time: "15:00", icon: "MapPin", title: "新世界 & 通天閣 🗼", desc: "昭和復古風情，必吃「達摩炸串」" },
+                    { 
+                        time: "10:00", 
+                        icon: "Utensils", 
+                        title: "黑門市場早午餐 🦀", 
+                        desc: "現烤扇貝、海膽、水果大福",
+                        intro: "大阪人的廚房！這裡可以吃到最新鮮的海鮮。推薦現烤的大扇貝（比手掌還大！）、海膽、河豚生魚片，還有神戶牛串燒。飯後再來一顆草莓大福，完美！"
+                    },
+                    { 
+                        time: "12:30", 
+                        icon: "Coffee", 
+                        title: "千日前道具街", 
+                        desc: "看逼真食物模型、精緻廚具",
+                        intro: "專賣廚房用品的街道。最特別的是這裡有許多製作精美的「食物模型」（像是假的拉麵、壽司），做得跟真的一樣，很適合買回家當紀念品。"
+                    },
+                    { 
+                        time: "15:00", 
+                        icon: "MapPin", 
+                        title: "新世界 & 通天閣 🗼", 
+                        desc: "昭和復古風情，必吃「達摩炸串」",
+                        intro: "充滿昭和時代懷舊氛圍的街區，誇張的立體招牌是這裡的特色。必吃名物「炸串 (Kushikatsu)」，推薦「達摩炸串」，麵衣薄脆不油膩，配上啤酒最棒了！"
+                    },
                     { time: "18:00", icon: "Utensils", title: "道頓堀最後巡禮", desc: "晚餐：大阪燒" }
                 ]
             },
@@ -155,7 +262,7 @@
             }
         ];
 
-        // SVG Icons embedded directly for single-file portability
+        // SVG Icons
         const Icon = ({ name, className }) => {
             const icons = {
                 Plane: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 12h20"/><path d="M13 2l9 10-9 10"/><path d="M2 12l5-5m0 10l-5-5"/></svg>,
@@ -164,7 +271,7 @@
                 Camera: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>,
                 Utensils: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>,
                 Train: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="16" height="16" x="4" y="3" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h0"/><path d="M16 15h0"/></svg>,
-                Shrine: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 21h18"/><path d="M5 21V7"/><path d="M19 21V7"/><path d="M2 7h20"/><path d="M12 3v18"/><path d="M4 12h16"/></svg>, 
+                Shrine: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 21h18"/><path d="M5 21V7"/><path d="M19 21V7"/><path d="M2 7h20"/><path d="M12 3v18"/><path d="M4 12h16"/></svg>,
                 Bus: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>,
                 Mountain: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>,
                 Ship: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.9 5.8 2.8 8"/><path d="M17.5 10l-9-5"/><path d="M12 21V4"/><path d="M8 2l4 4"/></svg>,
@@ -176,15 +283,21 @@
                 Flame: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.5-3.3.3-1.09.77-2.127 1.45-3.05a2.5 2.5 0 0 0 .55 2.85Z"/></svg>,
                 Coffee: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg>,
                 LogOut: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>,
-                Sunny: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>,
-                Cloudy: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17.5 19c0-1.7-1.3-3-3-3h-11c-1.7 0-3 1.3-3 3s1.3 3 3 3h11c1.7 0 3-1.3 3-3Z"/><path d="M17.5 12a6.5 6.5 0 0 1 0 13h-11a6.5 6.5 0 0 1-0-13h.1a4.5 4.5 0 0 1 8.8 0h2.1Z"/></svg>,
-                PartlyCloudy: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>,
-                Rain: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>,
+                ChevronDown: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 9 6 6 6-6"/></svg>,
+                ChevronUp: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m18 15-6-6-6 6"/></svg>,
             };
             return icons[name] || icons['MapPin']; 
         };
 
         const WeatherWidget = ({ weather, temp }) => {
+            // Weather icon SVG logic here (simplified for brevity, same as before)
+            const WeatherIcon = ({type}) => {
+                if(type === 'Sunny') return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>;
+                if(type === 'Cloudy') return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M17.5 19c0-1.7-1.3-3-3-3h-11c-1.7 0-3 1.3-3 3s1.3 3 3 3h11c1.7 0 3-1.3 3-3Z"/><path d="M17.5 12a6.5 6.5 0 0 1 0 13h-11a6.5 6.5 0 0 1-0-13h.1a4.5 4.5 0 0 1 8.8 0h2.1Z"/></svg>;
+                if(type === 'Rain') return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>;
+                return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>;
+            }
+
             const getBg = () => {
                 if (weather === 'Sunny') return 'bg-orange-100 text-orange-600 border-orange-200';
                 if (weather === 'Cloudy') return 'bg-slate-100 text-slate-600 border-slate-200';
@@ -194,7 +307,7 @@
 
             return (
                 <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-sm font-bold ${getBg()}`}>
-                    <Icon name={weather} className="w-4 h-4" />
+                    <WeatherIcon type={weather} />
                     <span>{temp}</span>
                 </div>
             )
@@ -235,6 +348,44 @@
             );
         };
 
+        // New Event Card Component to handle toggle state
+        const EventCard = ({ event }) => {
+            const [isOpen, setIsOpen] = useState(false);
+
+            return (
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-50 mt-1 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 bg-rose-50 text-rose-500 rounded-lg shrink-0">
+                            <Icon name={event.icon} className="w-5 h-5" />
+                        </div>
+                        <h3 className="font-bold text-gray-800">{event.title}</h3>
+                    </div>
+                    <p className="text-sm text-gray-500 leading-relaxed pl-[44px]">
+                        {event.desc}
+                    </p>
+                    
+                    {/* Toggle Button for Intro */}
+                    {event.intro && (
+                        <div className="pl-[44px] mt-3">
+                            <button 
+                                onClick={() => setIsOpen(!isOpen)}
+                                className="flex items-center text-xs text-rose-500 font-bold hover:text-rose-600 transition-colors"
+                            >
+                                {isOpen ? '收起介紹' : '查看介紹'} 
+                                <Icon name={isOpen ? "ChevronUp" : "ChevronDown"} className="w-3 h-3 ml-1" />
+                            </button>
+                            
+                            {isOpen && (
+                                <div className="mt-2 p-3 bg-rose-50 rounded-lg text-xs text-gray-600 leading-relaxed animate-fade-in">
+                                    {event.intro}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
         const App = () => {
             const [activeDay, setActiveDay] = useState(0);
 
@@ -257,7 +408,7 @@
                     <header className="px-6 pt-10 pb-4">
                         <div className="flex justify-between items-start mb-4">
                             <div>
-                                <h1 className="text-2xl font-black text-rose-900 leading-tight">京阪神<br/>七日悠閒之旅</h1>
+                                <h1 className="text-2xl font-black text-rose-900 leading-tight">關西姊妹淘<br/>七日悠閒之旅</h1>
                                 <p className="text-rose-700 text-sm mt-1 font-medium">2026.05.10 - 05.16</p>
                             </div>
                             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-rose-100 overflow-hidden">
@@ -316,17 +467,7 @@
                                         <span className="inline-block px-2 py-0.5 rounded bg-rose-100 text-rose-600 text-xs font-bold mb-1">
                                             {event.time}
                                         </span>
-                                        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-50 mt-1 hover:shadow-md transition-shadow">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className="p-2 bg-rose-50 text-rose-500 rounded-lg">
-                                                    <Icon name={event.icon} className="w-5 h-5" />
-                                                </div>
-                                                <h3 className="font-bold text-gray-800">{event.title}</h3>
-                                            </div>
-                                            <p className="text-sm text-gray-500 leading-relaxed pl-[44px]">
-                                                {event.desc}
-                                            </p>
-                                        </div>
+                                        <EventCard event={event} />
                                     </div>
                                 ))}
                             </div>
@@ -348,3 +489,5 @@
     </script>
 </body>
 </html>
+
+
